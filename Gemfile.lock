@@ -1,0 +1,18 @@
+GEM
+  specs:
+    daemons (1.1.2)
+    eventmachine (0.12.10)
+    fssm (0.2.6.1)
+    rack (1.2.2)
+    thin (1.2.11)
+      daemons (>= 1.0.9)
+      eventmachine (>= 0.12.6)
+      rack (>= 1.0.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  fssm
+  rack
+  thin
