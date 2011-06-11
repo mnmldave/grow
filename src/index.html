@@ -7,19 +7,23 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Kreon">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Kreon:light,regular,bold">
   <link rel="stylesheet" href="css/style.css?v=2">
   <script src="js/modernizr.js"></script>
 </head>
 <body>
-  <div id="container">
+  <div id="container" class="clearfix">
     <header>
+      <h1 id="logo">Grow <em>ideas</em></h1>
     </header>
 
     <div id="main" role="main">
+      <canvas id="garden"></canvas>
     </div>
 
-    <footer>
+    <footer class="clearfix">
+      <section id="status"></section>
+      <section id="copyright">Copyright &copy; 2011 Dave Heaton.</section>
     </footer>
   </div>
 
@@ -27,8 +31,8 @@
   <script src="js/underscore.js"></script>
   <script src="js/yabble.js"></script>
   <script>
-    require.setModuleRoot('js');
-    require.run('main');
+    require.setModuleRoot("js");
+    require.run("main");
   </script>
 </body>
 </html>

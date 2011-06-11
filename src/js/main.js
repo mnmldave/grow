@@ -2,6 +2,6 @@
   var GrowApp = require('grow/app'),
       Backbone = require('backbone');
 
-  new GrowApp.AppController();
+  new GrowApp.Controller();
   Backbone.history.start();
 })();
