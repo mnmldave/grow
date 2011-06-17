@@ -1,130 +1,165 @@
 (function() {
   var Backbone = require('backbone'),
-      Grow = require('grow/system');
+      BackboneLocalStorage = require('backbone/localStorage'),
+      Turtle = require('grow/turtle');
+      
+  var debug = function() { console.log(arguments); };
   
-  Backbone.sync = require('backbone.localstorage').sync;
+  Backbone.sync = BackboneLocalStorage.sync;
 
   var TreeModel = Backbone.Model.extend({
-    
   });
   
   var TreeCollection = Backbone.Collection.extend({
     model: TreeModel
   });
   
-  var garden = new TreeCollection();
-  
   var GardenView = Backbone.View.extend({
-    initialize: function() {
-      var self = this;
+    initialize: function(options) {
+      _.bindAll(this, 'hide', 'show', 'start', 'tick', 'stop', 'draw', 'render', 'update', 'click');
       
-      _.bindAll(self, 'render');
-      require.ensure(['processing'], function(require) {
-        var p = new (require('processing')).Processing(self.el, self.sketch);
+      // set up canvas context
+      this.fps = 30;
+      this.running = false;
+      this.ctx = this.el.getContext('2d');
+      
+      // bind events
+      $(this.el).click(this.click);
+    },
+    
+    hide: function() {
+      $(this.el).fadeOut();
+      this.stop();
+    },
+    
+    show: function() {
+      this.start();
+      $(this.el).fadeIn();
+    },
+    
+    start: function() {
+      if (this.running != true) {
+        this.running = true;
+        setTimeout(this.tick, 1000/this.fps);
+      }
+    },
+    
+    tick: function() {
+      try {
+        this.update();
+        this.render();
+      } catch (e) {
+        this.running = false;
+        throw e;
+      }
+      
+      if (this.running) {
+        setTimeout(this.tick, 1000/this.fps);
+      }
+    },
+    
+    stop: function() {
+      this.running = false;
+    },
+    
+    update: function() {
+      this.collection.each(function(model) {
+        // TODO generate next iteration of model
       });
     },
     
-    sketch: function(p) {
-      var canvas = p.externals.canvas;
-      var grower = new Grow.Bracketed({
-        productions: {
-          'X': 'F-[[X]+X]+F[+FX]-X',
-          'F': 'FF'
+    draw: function(program) {
+      var ctx = this.ctx,
+          i, 
+          stmt;
+      
+      for (i = 0; i < program.length; i++) {
+        stmt = program[i];
+        if ('c' in stmt) {
+          // command
+          switch (stmt.c) {
+            case 'F':
+              // draw and move up n units
+              ctx.moveTo(0, 0);
+              ctx.lineTo(0, stmt.p[0]);
+              ctx.stroke();
+              ctx.translate(0, stmt.p[0]);
+              break;
+            case 'f':
+              // only move up by n units
+              ctx.translate(0, stmt.p[0]);
+              break;
+            case '+':
+              // rotate by n degrees
+              ctx.rotate(stmt.p[0] * Math.PI / 180);
+              break;
+          }
+        } else {
+          // branch
+          ctx.save();
+          this.draw(stmt);
+          ctx.restore();
         }
+      }
+    },
+    
+    render: function() {
+      var self = this,
+          ctx = self.ctx;
+          
+      // TODO in window resize event
+      ctx.canvas.width = window.innerWidth;
+      ctx.canvas.height = window.innerHeight;
+
+      // draw turtle program for each tree
+      self.collection.each(function(model) {
+        var tree = model.attributes;
+        
+        ctx.save();
+        ctx.translate(tree.x, tree.y);
+        ctx.rotate(Math.PI); // rotate 180 degrees so draw upwards :P
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1.0;
+        self.draw(tree.program);
+        ctx.restore();
       });
       
-      p.setup = function() {
-        var $window = $(window);
-        p.size($window.width(), $window.height());
-        $window.resize(function(e) {
-          p.size($window.width(), $window.height());
-        });
+      return self;
+    },
+    
+    click: function(e) {
+      var tree = {
+        program: Turtle.parse('F(5)[+(45)F(5)]F(5)'),
+        x: e.clientX,
+        y: e.clientY
       };
-      
-      p.draw = function() {
-        p.background(245, 1);
-        garden.each(function(model) {
-          var tree = model.toJSON(),
-              word = tree.word,
-              i, c;
-          
-          if (tree.lifespan > 0) {
-            word = grower.next(word);
-            model.set({
-              word: word,
-              lifespan: tree.lifespan - 1
-            });
-          // } else {
-          //   garden.remove(model);
-          //   return;
-          }
-          
-          // draw tree
-          word = '[' + word + ']';
-          p.stroke(200);
-          p.fill(200);
-          p.pushMatrix();
-          p.translate(tree.x, tree.y);
-          p.rotate(p.PI);
-          for (i = 0; i < word.length; i++) {
-            switch(word.charAt(i)) {
-              case 'F':
-                // draw line and move forward
-                p.line(0,0,0, tree.growth);
-                p.translate(0, tree.growth);
-                break;
-              case '[':
-                // push stack
-                p.pushMatrix();
-                p.beginShape();
-                break;
-              case ']':
-                // pop stack
-                p.endShape();
-                p.popMatrix();
-                break;
-              case '+':
-                // turn right
-                p.rotate(p.radians(tree.angle));
-                break;
-              case '-':
-                // turn left
-                p.rotate(p.radians(0 - tree.angle));
-                break;
-            }
-          }
-          p.popMatrix();
-        });
-      };
-      
-      p.mouseClicked = function() {
-        garden.add({
-          lifespan: 2 + (Math.random() * 2),
-          angle: 22.5 + (Math.random() * 20),
-          growth: 5 + (Math.random() * 5),
-          
-          word: 'X',
-          x: p.mouseX,
-          y: p.mouseY
-        });
-      };
+      this.collection.add(tree);
     }
   });
   
   var Controller = Backbone.Controller.extend({
     routes: {
-      '': 'index'
+      '': 'index',
+      'test': 'test'
     },
 
     initialize: function(options) {
-      _.bindAll(this, 'index');
-      this.garden = new GardenView({
-        el: document.getElementById('garden')
-      }).render();
+      _.bindAll(this, 'index', 'test');
       
+      this.garden = new TreeCollection();
+      this.gardenView = new GardenView({
+        el: document.getElementById('garden'),
+        collection: this.garden
+      });
+      this.gardenView.render();
     },
     
     index: function() {
+      this.gardenView.show();
+    },
+    
+    test: function() {
+      
     }
   });
   
