@@ -1,6 +1,7 @@
 (function() {
   var Backbone = require('backbone'),
       BackboneLocalStorage = require('backbone/localStorage'),
+      Generator = require('grow/generator'),
       Turtle = require('grow/turtle');
       
   var debug = function() { console.log(arguments); };
@@ -16,10 +17,10 @@
   
   var GardenView = Backbone.View.extend({
     initialize: function(options) {
-      _.bindAll(this, 'hide', 'show', 'start', 'tick', 'stop', 'draw', 'render', 'update', 'click');
+      _.bindAll(this, 'hide', 'show', 'start', 'tick', 'stop', 'renderProgram', 'render', 'update', 'click');
       
       // set up canvas context
-      this.fps = 30;
+      this.fps = 0.5;
       this.running = false;
       this.ctx = this.el.getContext('2d');
       
@@ -45,13 +46,8 @@
     },
     
     tick: function() {
-      try {
-        this.update();
-        this.render();
-      } catch (e) {
-        this.running = false;
-        throw e;
-      }
+      this.update();
+      this.render();
       
       if (this.running) {
         setTimeout(this.tick, 1000/this.fps);
@@ -64,11 +60,22 @@
     
     update: function() {
       this.collection.each(function(model) {
-        // TODO generate next iteration of model
+        var tree = model.toJSON();
+        
+        // don't update trees without no energy
+        if (tree.energy <= 0) {
+          return;
+        }
+        console.log(tree);
+        
+        tree.program = Generator.generate(tree.productions, tree.program);
+        tree.energy = tree.energy - 1;
+        
+        model.set(tree);
       });
     },
     
-    draw: function(program) {
+    renderProgram: function(program) {
       var ctx = this.ctx,
           i, 
           stmt;
@@ -86,7 +93,7 @@
               ctx.translate(0, stmt.p[0]);
               break;
             case 'f':
-              // only move up by n units
+              // move up by n units (don't draw a line)
               ctx.translate(0, stmt.p[0]);
               break;
             case '+':
@@ -97,7 +104,7 @@
         } else {
           // branch
           ctx.save();
-          this.draw(stmt);
+          this.renderProgram(stmt);
           ctx.restore();
         }
       }
@@ -107,9 +114,10 @@
       var self = this,
           ctx = self.ctx;
           
-      // TODO in window resize event
+      // clear canvas
       ctx.canvas.width = window.innerWidth;
       ctx.canvas.height = window.innerHeight;
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
       // draw turtle program for each tree
       self.collection.each(function(model) {
@@ -120,7 +128,7 @@
         ctx.rotate(Math.PI); // rotate 180 degrees so draw upwards :P
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1.0;
-        self.draw(tree.program);
+        self.renderProgram(tree.program);
         ctx.restore();
       });
       
@@ -129,10 +137,33 @@
     
     click: function(e) {
       var tree = {
-        program: Turtle.parse('F(5)[+(45)F(5)]F(5)'),
-        x: e.clientX,
-        y: e.clientY
+        program: Turtle.parse('F(5)'),
+        energy: 2,
+        productions: {
+          'F': [
+            {
+              successor: function(n) {
+                return [
+                  { c: 'F', p: [n] },
+                  [
+                    { c: '+', p: [25.7] },
+                    { c: 'F', p: [n] }
+                  ],
+                  { c: 'F', p: [n] },
+                  [
+                    { c: '+', p: [-25.7] },
+                    { c: 'F', p: [n] }
+                  ],
+                  { c: 'F', p: [n] }
+                ];
+              }
+            }
+          ]
+        },
+        x: e.originalEvent.x + 0.5,
+        y: e.originalEvent.y + 0.5
       };
+      
       this.collection.add(tree);
     }
   });
