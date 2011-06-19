@@ -20,7 +20,7 @@
       _.bindAll(this, 'hide', 'show', 'start', 'tick', 'stop', 'renderProgram', 'render', 'update', 'click');
       
       // set up canvas context
-      this.fps = 0.5;
+      this.fps = 1;
       this.running = false;
       this.ctx = this.el.getContext('2d');
       
@@ -137,8 +137,8 @@
     
     click: function(e) {
       var tree = {
-        program: Turtle.parse('F(5)'),
-        energy: 2,
+        program: Turtle.parse('F(2)'),
+        energy: 5,
         productions: {
           'F': [
             {
@@ -146,12 +146,12 @@
                 return [
                   { c: 'F', p: [n] },
                   [
-                    { c: '+', p: [25.7] },
+                    { c: '+', p: [-25.7] },
                     { c: 'F', p: [n] }
                   ],
                   { c: 'F', p: [n] },
                   [
-                    { c: '+', p: [-25.7] },
+                    { c: '+', p: [25.7] },
                     { c: 'F', p: [n] }
                   ],
                   { c: 'F', p: [n] }

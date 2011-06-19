@@ -5,8 +5,9 @@
 (function($) {
   
   function generate(productions, program) {
-    var result = [], i, j;
+    var result = [], i;
 
+    // expand each module in the program
     for (i = 0; i < program.length; i++) {
       $.merge(result, expand(productions, program, i));
     }
@@ -41,7 +42,7 @@
       }
     } else {
       // branch
-      result = generate(productions, stmt);
+      result = [ generate(productions, stmt) ];
     }
     
     return result;
