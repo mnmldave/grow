@@ -2,9 +2,8 @@
   var Backbone = require('backbone'),
       BackboneLocalStorage = require('backbone/localStorage'),
       Generator = require('grow/generator'),
-      Turtle = require('grow/turtle');
-      
-  var debug = function() { console.log(arguments); };
+      Turtle = require('grow/turtle'),
+      Vectorizor = require('grow/vectorizor');
   
   Backbone.sync = BackboneLocalStorage.sync;
 
@@ -17,12 +16,12 @@
   
   var GardenView = Backbone.View.extend({
     initialize: function(options) {
-      _.bindAll(this, 'hide', 'show', 'start', 'tick', 'stop', 'renderProgram', 'render', 'update', 'click');
+      _.bindAll(this, 'hide', 'show', 'start', 'tick', 'stop', 'render', 'update', 'click');
       
       // set up canvas context
-      this.fps = 1;
+      this.fps = 30;
+      this.grower = options.grower;
       this.running = false;
-      this.ctx = this.el.getContext('2d');
       
       // bind events
       $(this.el).click(this.click);
@@ -62,73 +61,57 @@
       this.collection.each(function(model) {
         var tree = model.toJSON();
         
-        // don't update trees without no energy
+        // skip trees with no energy left
         if (tree.energy <= 0) {
           return;
         }
-        console.log(tree);
-        
-        tree.program = Generator.generate(tree.productions, tree.program);
         tree.energy = tree.energy - 1;
         
+        // generate a new version of the tree and compile vector instructions
+        tree.program = Generator.generate(tree.productions, tree.program);
+        tree.vector = Vectorizor.vectorize(tree.program);
+        
+        console.log(tree.vector.length);
+        
+        // save
         model.set(tree);
       });
     },
     
-    renderProgram: function(program) {
-      var ctx = this.ctx,
-          i, 
-          stmt;
-      
-      for (i = 0; i < program.length; i++) {
-        stmt = program[i];
-        if ('c' in stmt) {
-          // command
-          switch (stmt.c) {
-            case 'F':
-              // draw and move up n units
-              ctx.moveTo(0, 0);
-              ctx.lineTo(0, stmt.p[0]);
-              ctx.stroke();
-              ctx.translate(0, stmt.p[0]);
-              break;
-            case 'f':
-              // move up by n units (don't draw a line)
-              ctx.translate(0, stmt.p[0]);
-              break;
-            case '+':
-              // rotate by n degrees
-              ctx.rotate(stmt.p[0] * Math.PI / 180);
-              break;
-          }
-        } else {
-          // branch
-          ctx.save();
-          this.renderProgram(stmt);
-          ctx.restore();
-        }
-      }
-    },
-    
     render: function() {
       var self = this,
-          ctx = self.ctx;
-          
-      // clear canvas
+          ctx;
+      
+      ctx = this.el.getContext('2d');
       ctx.canvas.width = window.innerWidth;
       ctx.canvas.height = window.innerHeight;
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-      // draw turtle program for each tree
       self.collection.each(function(model) {
-        var tree = model.attributes;
+        var tree = model.attributes,
+            vector = tree.vector,
+            i, c;
         
         ctx.save();
-        ctx.translate(tree.x, tree.y);
-        ctx.rotate(Math.PI); // rotate 180 degrees so draw upwards :P
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 1.0;
-        self.renderProgram(tree.program);
+        ctx.beginPath();
+        ctx.translate(tree.x, ctx.canvas.height);
+        ctx.rotate(Math.PI);
+        for (i = 0; i < vector.length; i++) {
+          c = vector[i];
+          switch (c) {
+            case 'm':
+              // move to (x,y)
+              ctx.moveTo(vector[++i], vector[++i]);
+              break;
+            case 'l':
+              // draw a line to (x,y)
+              ctx.lineTo(vector[++i], vector[++i]);
+              break;
+            default:
+              throw new Error("Unrecognized instruction: " + c);
+          }
+          ctx.stroke();
+        }
         ctx.restore();
       });
       
@@ -137,8 +120,9 @@
     
     click: function(e) {
       var tree = {
-        program: Turtle.parse('F(2)'),
-        energy: 5,
+        program: Turtle.parse('F(3)'),
+        energy: 3,
+        vector: [ 'm', 0, 0, 'l', 0, 20 ],
         productions: {
           'F': [
             {
@@ -177,10 +161,13 @@
     initialize: function(options) {
       _.bindAll(this, 'index', 'test');
       
+      this.grower = null; //new Worker('grower.js');
+      
       this.garden = new TreeCollection();
       this.gardenView = new GardenView({
         el: document.getElementById('garden'),
-        collection: this.garden
+        collection: this.garden,
+        grower: this.grower
       });
       this.gardenView.render();
     },

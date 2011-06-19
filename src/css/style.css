@@ -302,6 +302,7 @@ a:hover {
   z-index: 1000;
 }
 #container header h1 {
+  display: none;
   font: 36px/1.111 "Kreon", sans-serif;
   text-shadow: 0 1px 0 #fff;
 }
