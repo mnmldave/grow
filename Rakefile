@@ -22,10 +22,15 @@ end
 desc 'starts thin web server'
 task :server do 
   require 'rack'
+  require 'rack-cache'
   require 'thin'
   
   app = Rack::Builder.new do
     use Rack::ShowExceptions
+    use Rack::Cache, 
+        :verbose => false,
+        :allow_reload => true,
+        :default_ttl => 0
     run Rack::Directory.new(SRC_PATH)
   end
   

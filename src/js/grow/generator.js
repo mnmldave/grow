@@ -4,6 +4,9 @@
  */
 (function($) {
   
+  /**
+   * Generates a new program using the given productions.
+   */
   function generate(productions, program) {
     var result = [], i;
 
@@ -82,5 +85,4 @@
    * @param (Array) program to apply the productions to
    */
   exports.generate = generate;
-  
 })(jQuery);

@@ -113,23 +113,6 @@
         productions: {
           'F': [
             turtle.parse('F(n)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)')
-            // {
-            //   successor: function(n) {
-            //     return [
-            //       { c: 'F', p: [n] },
-            //       [
-            //         { c: '+', p: [-25.7] },
-            //         { c: 'F', p: [n] }
-            //       ],
-            //       { c: 'F', p: [n] },
-            //       [
-            //         { c: '+', p: [25.7] },
-            //         { c: 'F', p: [n] }
-            //       ],
-            //       { c: 'F', p: [n] }
-            //     ];
-            //   }
-            // }
           ]
         },
         x: e.originalEvent.x + 0.5,

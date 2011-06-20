@@ -1,59 +1,33 @@
 Production
-  = probability:Number? '->' successor:StatementList {
+  = _ pre:(Command _ '<' _)? c:Command condition:('(' _ RelationalExpression _ ')')? post:(_ '>' _ Command)? _ '->' _ successor:StatementList _ {
       var result = {};
       
-      if (probability) {
-        result.probability = probability;
+      if (pre) {
+        result.pre = pre[0];
+      }
+      result.c = c;
+      if (post) {
+        result.post = post[3];
+      }
+      if (condition) {
+        result.condition = condition[2];
       }
       result.successor = successor;
       
       return result;
     }
 
-  / after:Command '<' c:Command '>' before:Command '->' successor:StatementList {
-      var result = {};
-      
-      result.after = after;
-      result.before = before;
-      result.successor = successor;
-      
-      return result;
-    }
-
-  / after:Command '<' c:Command '->' successor:StatementList {
-      var result = {};
-
-      result.after = after;
-      result.successor = successor;
-
-      return result;
-    }
-
-  / c:Command '>' before:Command '->' successor:StatementList {
-      var result = {};
-
-      result.before = before;
-      result.successor = successor;
-
-      return result;
-    }
-
-  / '(' condition:RelationalExpression ')' '->' successor:StatementList {
-      var result = {};
-
-      result.condition = condition;
-      result.successor = successor;
-
-      return result;
-    }
-
-  / program:StatementList {
+  / _ program:StatementList _ {
       return program;
     }
 
 StatementList
-  = statements:Statement* { 
-      return statements;
+  = statements:(_ Statement)* { 
+      var result = [], i;
+      for (i = 0; i < statements.length; i++) {
+        result.push(statements[i][1]);
+      }
+      return result;
     }
  
 Statement
@@ -61,28 +35,29 @@ Statement
   / Module
 
 Branch
-  = '[' statements:Statement+ ']' {
-      return statements;
-    }
+  = '[' _ statements:StatementList _ ']' { return statements; }
 
 Module
-  = command:Command params:('(' ParameterList ')')? {
+  = command:Command params:('(' _ ParameterList _ ')')? {
       var result = {
         c: command
       };
       
       if (params) {
-        result.p = params[1];
+        result.p = params[2];
       }
       
       return result;
     }
 
+Command
+  = c:[a-zA-Z0-9+] { return c; }
+
 ParameterList
-  = head:Parameter tail:("," Parameter)* {
+  = head:Parameter _ tail:("," _ Parameter)* {
       var result = [head];
       for (var i = 0; i < tail.length; i++) {
-        result.push(tail[i][1])
+        result.push(tail[i][2])
       }
       return result;
     }
@@ -90,11 +65,8 @@ ParameterList
 Parameter
   = e:ArithmeticExpression { return e; }
 
-Command
-  = c:[a-zA-Z0-9~`!@#$%^&*()_+-={}\|<>,./?] { return c; }
-
 RelationalExpression
-  = left:ArithmeticExpression op:RelationalOperator right:ArithmeticExpression {
+  = left:ArithmeticExpression _ op:RelationalOperator _ right:ArithmeticExpression {
       return left + op + right;
     }
 
@@ -107,7 +79,7 @@ RelationalOperator
   / '!='
 
 ArithmeticExpression
-  = '(' left:ArithmeticExpression op:ArithmeticOperator right:ArithmeticExpression ')' { return '(' + left + op + right + ')'; }
+  = '(' _ left:ArithmeticExpression _ op:ArithmeticOperator _ right:ArithmeticExpression _ ')' { return '(' + left + op + right + ')'; }
   / v:ArithmeticValue { return v; }
 
 ArithmeticOperator
@@ -135,3 +107,6 @@ Float
   = sign:[+-]? before:[0-9]* "." after:[0-9]+ {
       return parseFloat(sign + before.join("") + "." + after.join(""));
     }
+
+_
+  = [ \t\n\r]*
