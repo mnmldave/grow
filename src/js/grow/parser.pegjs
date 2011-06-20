@@ -105,13 +105,24 @@ Parameter
 
 BooleanExpression
   = left:BooleanElement _ op:BooleanOperator _ right:BooleanElement {
-      return left + op + right;
+      return {
+        type: 'BinaryOperation',
+        op: op,
+        left: left,
+        right: right
+      };
     }
-  / '!' _ '(' element:BooleanElement ')' { return '!(' + element + ')'; }
+  / '!' _ '(' element:BooleanElement ')' { 
+      return {
+        type: 'UnaryOperation',
+        op: '!',
+        element: element
+      };
+    }
   / RelationalExpression
   
 BooleanElement
-  = '(' _ expr:BooleanExpression _ ')' { return '(' + expr + ')'; }
+  = '(' _ expr:BooleanExpression _ ')' { return expr; }
   / RelationalExpression
   / BooleanConstant
 
@@ -125,7 +136,12 @@ BooleanOperator
 
 RelationalExpression
   = left:RelationalElement _ op:RelationalOperator _ right:RelationalElement {
-      return '(' + left + op + right + ')';
+      return {
+        type: 'BinaryOperation',
+        op: op,
+        left: left,
+        right: right
+      };
     }
 
 RelationalElement
@@ -141,12 +157,17 @@ RelationalOperator
 
 ArithmeticExpression
   = left:ArithmeticElement _ op:ArithmeticOperator _ right:ArithmeticElement { 
-      return left + op + right; 
+      return {
+        type: 'BinaryOperation',
+        op: op,
+        left: left,
+        right: right
+      };
     }
   / ArithmeticElement
 
 ArithmeticElement
-  = '(' _ expr:ArithmeticExpression _ ')' { return '(' + expr + ')'; }
+  = '(' _ expr:ArithmeticExpression _ ')' { return expr; }
   / v:ArithmeticValue { return v; }
 
 ArithmeticOperator

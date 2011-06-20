@@ -27,12 +27,12 @@
 
       it("should parse single module with arithmetic parameters", function() {
         expect(turtle.parseProgram('F(a)')).toEqual([ { c: 'F', p: ['a'] } ]);
-        expect(turtle.parseProgram('F( (a + 1))')).toEqual([ { c: 'F', p: ['(a+1)'] } ]);
-        expect(turtle.parseProgram('F((a-1))')).toEqual([ { c: 'F', p: ['(a-1)'] } ]);
-        expect(turtle.parseProgram('F((a* b))')).toEqual([ { c: 'F', p: ['(a*b)'] } ]);
-        expect(turtle.parseProgram('F((a /b))')).toEqual([ { c: 'F', p: ['(a/b)'] } ]);
-        expect(turtle.parseProgram('F((a^b ) )')).toEqual([ { c: 'F', p: ['(a^b)'] } ]);
-        expect(turtle.parseProgram('F(  (a^( b* 12)))')).toEqual([ { c: 'F', p: ['(a^(b*12))'] } ]);
+        expect(turtle.parseProgram('F( (a + 1))')).toEqual([ { c: 'F', p: [ { type: 'BinaryOperation', op: '+', left: 'a', right: 1 } ] } ]);
+        expect(turtle.parseProgram('F((a-1))')).toEqual([ { c: 'F', p: [ { type: 'BinaryOperation', op: '-', left: 'a', right: 1 } ] } ]);
+        expect(turtle.parseProgram('F((a* b))')).toEqual([ { c: 'F', p: [ { type: 'BinaryOperation', op: '*', left: 'a', right: 'b' } ] } ]);
+        expect(turtle.parseProgram('F((a /b))')).toEqual([ { c: 'F', p: [ { type: 'BinaryOperation', op: '/', left: 'a', right: 'b' } ] } ]);
+        expect(turtle.parseProgram('F((a^b ) )')).toEqual([ { c: 'F', p: [ { type: 'BinaryOperation', op: '^', left: 'a', right: 'b' } ] } ]);
+        expect(turtle.parseProgram('F(  (a^( b* 12)))')).toEqual([ { c: 'F', p: [ { type: 'BinaryOperation', op: '^', left: 'a', right: { type: 'BinaryOperation', op: '*', left: 'b', right: 12 }  } ] } ]);
       });
 
       it("should parse production rule 1.24a", function() {
@@ -64,14 +64,14 @@
       });
 
       it("should parse conditional productions", function() {
-        expect(turtle.parseProductions('F(t) : t>5 -> F(t)')).toEqual([{ c: 'F', variables: ['t'], condition: '(t>5)', successor: [ { c: 'F', p: ['t'] } ] }]);
-        expect(turtle.parseProductions('F(t,b) : t>(5*b) -> F(t)')).toEqual([{ c: 'F', variables: ['t', 'b'], condition: '(t>(5*b))', successor: [ { c: 'F', p: ['t'] } ] }]);
+        expect(turtle.parseProductions('F(t) : t>5 -> F(t)')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, successor: [ { c: 'F', p: ['t'] } ] }]);
+        expect(turtle.parseProductions('F(t,b) : t>5 -> F(t)')).toEqual([{ c: 'F', variables: ['t', 'b'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, successor: [ { c: 'F', p: ['t'] } ] }]);
       });
 
       it("should parse contextual and conditional productions", function() {
-        expect(turtle.parseProductions('A < F(t) : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: '(t>5)', pre: 'A', successor: [ { c: 'F' } ] }]);
-        expect(turtle.parseProductions('F(t) > B : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: '(t>5)', post: 'B', successor: [ { c: 'F' } ] }]);
-        expect(turtle.parseProductions('A < F(t) > B : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: '(t>5)', pre: 'A', post: 'B', successor: [ { c: 'F' } ] }]);
+        expect(turtle.parseProductions('A < F(t) : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, pre: 'A', successor: [ { c: 'F' } ] }]);
+        expect(turtle.parseProductions('F(t) > B : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, post: 'B', successor: [ { c: 'F' } ] }]);
+        expect(turtle.parseProductions('A < F(t) > B : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, pre: 'A', post: 'B', successor: [ { c: 'F' } ] }]);
       });
     });
   });

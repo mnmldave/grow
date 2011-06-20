@@ -1036,7 +1036,12 @@
         }
         var result9 = result10 !== null
           ? (function(left, op, right) {
-                return left + op + right;
+                return {
+                  type: 'BinaryOperation',
+                  op: op,
+                  left: left,
+                  right: right
+                };
               })(result10[0], result10[2], result10[4])
           : null;
         if (result9 !== null) {
@@ -1099,7 +1104,13 @@
             pos = savedPos0;
           }
           var result2 = result3 !== null
-            ? (function(element) { return '!(' + element + ')'; })(result3[3])
+            ? (function(element) { 
+                  return {
+                    type: 'UnaryOperation',
+                    op: '!',
+                    element: element
+                  };
+                })(result3[3])
             : null;
           if (result2 !== null) {
             var result0 = result2;
@@ -1180,7 +1191,7 @@
           pos = savedPos0;
         }
         var result3 = result4 !== null
-          ? (function(expr) { return '(' + expr + ')'; })(result4[2])
+          ? (function(expr) { return expr; })(result4[2])
           : null;
         if (result3 !== null) {
           var result0 = result3;
@@ -1342,7 +1353,12 @@
         }
         var result0 = result1 !== null
           ? (function(left, op, right) {
-                return '(' + left + op + right + ')';
+                return {
+                  type: 'BinaryOperation',
+                  op: op,
+                  left: left,
+                  right: right
+                };
               })(result1[0], result1[2], result1[4])
           : null;
         
@@ -1519,7 +1535,12 @@
         }
         var result2 = result3 !== null
           ? (function(left, op, right) { 
-                return left + op + right; 
+                return {
+                  type: 'BinaryOperation',
+                  op: op,
+                  left: left,
+                  right: right
+                };
               })(result3[0], result3[2], result3[4])
           : null;
         if (result2 !== null) {
@@ -1600,7 +1621,7 @@
           pos = savedPos0;
         }
         var result3 = result4 !== null
-          ? (function(expr) { return '(' + expr + ')'; })(result4[2])
+          ? (function(expr) { return expr; })(result4[2])
           : null;
         if (result3 !== null) {
           var result0 = result3;
