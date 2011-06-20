@@ -1,19 +1,72 @@
-prog
-  = statements:stmt+ { 
+Production
+  = probability:Number? '->' successor:StatementList {
+      var result = {};
+      
+      if (probability) {
+        result.probability = probability;
+      }
+      result.successor = successor;
+      
+      return result;
+    }
+
+  / after:Command '<' c:Command '>' before:Command '->' successor:StatementList {
+      var result = {};
+      
+      result.after = after;
+      result.before = before;
+      result.successor = successor;
+      
+      return result;
+    }
+
+  / after:Command '<' c:Command '->' successor:StatementList {
+      var result = {};
+
+      result.after = after;
+      result.successor = successor;
+
+      return result;
+    }
+
+  / c:Command '>' before:Command '->' successor:StatementList {
+      var result = {};
+
+      result.before = before;
+      result.successor = successor;
+
+      return result;
+    }
+
+  / '(' condition:RelationalExpression ')' '->' successor:StatementList {
+      var result = {};
+
+      result.condition = condition;
+      result.successor = successor;
+
+      return result;
+    }
+
+  / program:StatementList {
+      return program;
+    }
+
+StatementList
+  = statements:Statement* { 
       return statements;
     }
  
-stmt
-  = branch
-  / command
+Statement
+  = Branch
+  / Module
 
-branch
-  = '[' statements:stmt+ ']' {
+Branch
+  = '[' statements:Statement+ ']' {
       return statements;
     }
 
-command
-  = command:[a-zA-Z0-9~`!@#$%^&*()_+-={}\|<>,./?] params:('(' params ')')? {
+Module
+  = command:Command params:('(' ParameterList ')')? {
       var result = {
         c: command
       };
@@ -25,28 +78,60 @@ command
       return result;
     }
 
-params
-  = head:literal tail:("," literal)* {
+ParameterList
+  = head:Parameter tail:("," Parameter)* {
       var result = [head];
       for (var i = 0; i < tail.length; i++) {
         result.push(tail[i][1])
       }
       return result;
     }
+
+Parameter
+  = e:ArithmeticExpression { return e; }
+
+Command
+  = c:[a-zA-Z0-9~`!@#$%^&*()_+-={}\|<>,./?] { return c; }
+
+RelationalExpression
+  = left:ArithmeticExpression op:RelationalOperator right:ArithmeticExpression {
+      return left + op + right;
+    }
+
+RelationalOperator
+  = '<'
+  / '>'
+  / '<='
+  / '>='
+  / '=='
+  / '!='
+
+ArithmeticExpression
+  = '(' left:ArithmeticExpression op:ArithmeticOperator right:ArithmeticExpression ')' { return '(' + left + op + right + ')'; }
+  / v:ArithmeticValue { return v; }
+
+ArithmeticOperator
+  = '+'
+  / '-'
+  / '*'
+  / '/'
+  / '^'
+
+ArithmeticValue
+  = v:Identifier { return v; }
+  / n:Number { return n; }
   
-/**
- * Lexicon 
- * - https://github.com/dmajda/pegjs/blob/master/examples/css.pegjs
- */
+Number
+  = n:Float { return n; }
+  / n:Integer { return n; }
 
-literal
-  = n:float { return n; }
-  / n:integer { return n; }
+Identifier
+  = before:[a-zA-Z] after:[a-zA-Z0-9]* { return before + after.join(''); }
 
-integer
-  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
+Integer
+  = sign:[+-]? digits:[0-9]+ { return parseInt(sign + digits.join(""), 10); }
 
-float
-  = before:[0-9]* "." after:[0-9]+ {
-      return parseFloat(before.join("") + "." + after.join(""));
+Float
+  = sign:[+-]? before:[0-9]* "." after:[0-9]+ {
+      return parseFloat(sign + before.join("") + "." + after.join(""));
     }
