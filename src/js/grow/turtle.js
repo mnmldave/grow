@@ -1,9 +1,12 @@
 (function($) {
+
+  var parser = require('grow/parser');
+
   /**
    * Function for a DFS of a program using onModule, onBranchStart and 
    * onBranchEnd callbacks.
    */
-  var iterate = function(program, args) {
+  var iterateProgram = function(program, args) {
     var i, stmt, options = { onModule: function(){}, onBranchStart: function(){}, onBranchEnd: function(){} };
     
     $.extend(options, args);
@@ -22,9 +25,9 @@
   };
   
   /**
-   * Formats a turtle program model as a string.
+   * Formats a single turtle program as a string.
    */
-  var format = function(program) {
+  var formatProgram = function(program) {
     var result = [];
     
     iterate(program, {
@@ -49,7 +52,28 @@
     return result.join('');
   };
   
-  exports.parse = require('grow/turtle-parser').parse;
+  var parseProgram = function(str) {
+    var tree = parser.parse(str);
+    
+    if (!(tree && tree.type === 'Program')) {
+      throw new Error("Not a program.");
+    }
+    
+    return tree.elements[0];
+  }
+  
+  var parseProductions = function(str) {
+    var tree = parser.parse(str);
+    
+    if (!(tree && tree.type === 'ProductionList')) {
+      throw new Error("Not a production list.");
+    }
+    
+    return tree.elements;
+  }
+
+  exports.parseProgram = parseProgram;
+  exports.parseProductions = parseProductions;
   exports.iterate = iterate;
   exports.format = format;
 })(jQuery);
