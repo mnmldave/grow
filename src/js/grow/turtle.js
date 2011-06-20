@@ -18,7 +18,7 @@
       } else {
         // branch
         options.onBranchStart();
-        iterate(stmt, options);
+        iterateProgram(stmt, options);
         options.onBranchEnd();
       }
     }
@@ -30,7 +30,7 @@
   var formatProgram = function(program) {
     var result = [];
     
-    iterate(program, {
+    iterateProgram(program, {
       onModule: function(c,p) { 
         result.push(c);
         if (p && p.length) {
@@ -59,7 +59,7 @@
       throw new Error("Not a program.");
     }
     
-    return tree.elements[0];
+    return tree.elements;
   }
   
   var parseProductions = function(str) {
@@ -74,6 +74,6 @@
 
   exports.parseProgram = parseProgram;
   exports.parseProductions = parseProductions;
-  exports.iterate = iterate;
-  exports.format = format;
+  exports.iterateProgram = iterateProgram;
+  exports.formatProgram = formatProgram;
 })(jQuery);
