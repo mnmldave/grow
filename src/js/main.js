@@ -1,9 +1,8 @@
 (function($) {
-  var GrowApp = require('grow/app'),
-      Backbone = require('backbone');
-
-  new GrowApp.Controller();
-  Backbone.history.start();
+  var app = require('grow/app');
+  new app.Controller();
+  require('backbone').history.start();
   
-  $('#logo').delay(100).fadeIn(2000);
+  $('.fadein').delay(100).fadeIn(1000);
+  $('.fancybox').fancybox();
 })(jQuery);

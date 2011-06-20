@@ -1,9 +1,9 @@
 (function() {
   var Backbone = require('backbone'),
       BackboneLocalStorage = require('backbone/localStorage'),
-      Generator = require('grow/generator'),
-      Turtle = require('grow/turtle'),
-      Vectorizor = require('grow/vectorizor');
+      generator = require('grow/generator'),
+      vectorizor = require('grow/vectorizor'),
+      turtle = require('grow/turtle');
   
   Backbone.sync = BackboneLocalStorage.sync;
 
@@ -16,7 +16,7 @@
   
   var GardenView = Backbone.View.extend({
     initialize: function(options) {
-      _.bindAll(this, 'hide', 'show', 'start', 'tick', 'stop', 'render', 'update', 'click');
+      _.bindAll(this, 'start', 'tick', 'stop', 'render', 'update', 'click');
       
       // set up canvas context
       this.fps = 30;
@@ -25,16 +25,6 @@
       
       // bind events
       $(this.el).click(this.click);
-    },
-    
-    hide: function() {
-      $(this.el).fadeOut();
-      this.stop();
-    },
-    
-    show: function() {
-      this.start();
-      $(this.el).fadeIn();
     },
     
     start: function() {
@@ -68,10 +58,8 @@
         tree.energy = tree.energy - 1;
         
         // generate a new version of the tree and compile vector instructions
-        tree.program = Generator.generate(tree.productions, tree.program);
-        tree.vector = Vectorizor.vectorize(tree.program);
-        
-        console.log(tree.program);
+        tree.program = generator.generate(tree.productions, tree.program);
+        tree.vector = vectorizor.vectorize(tree.program);
         
         // save
         model.set(tree);
@@ -120,28 +108,28 @@
     
     click: function(e) {
       var tree = {
-        program: Turtle.parse('F(15)'),
+        program: turtle.parse('F(15)'),
         energy: 3,
-        vector: [ 'm', 0, 0, 'l', 0, 20 ],
         productions: {
           'F': [
-            {
-              successor: function(n) {
-                return [
-                  { c: 'F', p: [n] },
-                  [
-                    { c: '+', p: [-25.7] },
-                    { c: 'F', p: [n] }
-                  ],
-                  { c: 'F', p: [n] },
-                  [
-                    { c: '+', p: [25.7] },
-                    { c: 'F', p: [n] }
-                  ],
-                  { c: 'F', p: [n] }
-                ];
-              }
-            }
+            turtle.parse('F(n)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)')
+            // {
+            //   successor: function(n) {
+            //     return [
+            //       { c: 'F', p: [n] },
+            //       [
+            //         { c: '+', p: [-25.7] },
+            //         { c: 'F', p: [n] }
+            //       ],
+            //       { c: 'F', p: [n] },
+            //       [
+            //         { c: '+', p: [25.7] },
+            //         { c: 'F', p: [n] }
+            //       ],
+            //       { c: 'F', p: [n] }
+            //     ];
+            //   }
+            // }
           ]
         },
         x: e.originalEvent.x + 0.5,
@@ -154,14 +142,11 @@
   
   var Controller = Backbone.Controller.extend({
     routes: {
-      '': 'index',
-      'test': 'test'
+      '': 'index'
     },
 
     initialize: function(options) {
-      _.bindAll(this, 'index', 'test');
-      
-      this.grower = null; //new Worker('grower.js');
+      _.bindAll(this, 'index');
       
       this.garden = new TreeCollection();
       this.gardenView = new GardenView({
@@ -173,11 +158,6 @@
     },
     
     index: function() {
-      this.gardenView.show();
-    },
-    
-    test: function() {
-      
     }
   });
   
