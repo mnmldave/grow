@@ -15,7 +15,7 @@
 
   describe("generator", function() {
     it("should die on production with no LHS", function() {
-      expect(function() { generate('F', 'F'); }).toThrow('Production is missing LHS.');
+      expect(function() { generate('F', 'F'); }).toThrow();
     });
 
     it("should generate from identity", function() {
@@ -26,6 +26,18 @@
     it("should generate from doubling", function() {
       expect(generate('F', 'F->FF')).toEqual('FF');
       expect(generate('F(7)', 'F(t)->F(t)F(t)')).toEqual('F(7)F(7)');
+    });
+
+    it("should skip condition", function() {
+      expect(generate('F(7)', 'F(t) : t > 8 -> F(t+1)')).toEqual([
+        { 'c': 'F', 'p': [7] }
+      ])
+    });
+
+    it("should use condition", function() {
+      expect(generate('F(7)', 'F(t) : t < 8 -> F(t+1)')).toEqual([
+        { 'c': 'F', 'p': [8] }
+      ])
     });
   });
 })();

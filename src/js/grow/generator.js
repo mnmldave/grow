@@ -8,71 +8,40 @@
   /**
    * Generates the next iteration of a program.
    *
-   * @param (String) program a turtle program to evolve (eg. 'F')
-   * @param (String) productions a set of production statements (eg. 'F->FF')
+   * @param (String|Array) program a turtle program to evolve (eg. 'F' or the 
+   *        result of turtle.parseProgram)
+   * @param (String|Array) productions a set of production statements (eg. 
+   *        'F->FF' or the result of turtle.parseProductions)
+   *
+   * @returns a processed program object model
    */
   function generate(options) {
     var result = [], i, program, productions;
     
-    program = createProgram(options.program);
-    productions = createProductions(options.productions);
+    program = toProgram(options.program);
+    productions = toProductionIndex(options.productions);
 
-    // expand each module in the program
     for (i = 0; i < program.length; i++) {
       $.merge(result, expand(productions, program, i));
     }
 
-    return turtle.format(result);
-  }
-  
-  function createProgram(program) {
-    var programList;
-    
-    programList = turtle.parse(program);
-    if (programList.length != 1) {
-      throw new Error('Exactly one program must be specified.');
-    }
-    
-    return programList[0];
-  }
-  
-  function createProductions(productions) {
-    var result = {}, i, prod, productionList;
-    
-    productionList = turtle.parse(productions);
-    for (i = 0; i < productionList.length; i++) {
-      prod = productionList[i];
-      
-      if (!('c' in prod)) {
-        throw new Error("Production is missing LHS.");
-      }
-      
-      if (!(prod.c in result)) {
-        result[prod.c] = [];
-      }
-      result[prod.c].push(prod);
-    }
-    
     return result;
   }
 
-  /**
-   * Expands a program module using the given production rules.
-   */
   function expand(productions, program, index) {
-    var p, 
+    var prod, 
         stmt,
         result;
     
     stmt = program[index];
     if ('c' in stmt) {
       // module
-      p = production(productions, program, index);
-      if (p) {
+      prod = production(productions, program, index);
+      if (prod) {
         if ('p' in stmt) {
-          result = p.successor.apply(null, stmt.p);
+          //result = prod.successor.apply(null, stmt.p);
         } else {
-          result = p.successor();
+          //result = prod.successor();
         }
 
         if (!result) {
@@ -89,9 +58,6 @@
     return result;
   }
 
-  /**
-   * Returns the production rule pertaining to a particular program module.
-   */
   function production(productions, program, index) {
     var i, module, result, options;
     
@@ -99,28 +65,75 @@
     if (module.c in productions) {
       options = productions[module.c];
       for (i = 0; i < options.length; i++) {
-        // TODO probability support
+        // TODO make sure pre/post hold
+        
+        // make sure condition evaluates to true
         if ('condition' in options[i]) {
-          if (options[i]['condition'].apply(null, module.p) === true) {
-            result = options[i];
-            break;
+          if (options[i].condition.apply(null, module.p) !== true) {
+            continue;
           }
-        } else {
-          result = options[i];
-          break;
         }
+        
+        result = options[i];
+        break;
       }
     }
     
     return result;
   }
   
-  /**
-   * Returns the result of applying deterministic production rules to a 
-   * string.
-   *
-   * @param (Object) productions mapping
-   * @param (Array) program to apply the productions to
-   */
+  // =============
+  // = Utilities =
+  // =============
+  
+  function toProgram(program) {
+    if (typeof program === 'string') {
+      program = turtle.parseProgram(program);
+    }
+    return program;
+  }
+  
+  function toProductionIndex(productions) {
+    var result = {}, i, prod, vars;
+    
+    // either parse or clone input productions since we'll be mutating
+    if (typeof productions === 'string') {
+      productions = turtle.parseProductions(productions);
+    } else {
+      productions = $.extend(true, [], productions);
+    }
+    
+    for (i = 0; i < productions.length; i++) {
+      prod = productions[i];
+      vars = [];
+      
+      if ('variables' in prod) {
+        $.extend(vars, prod.variables);
+      }
+
+      // replace conditions with functions
+      if ('condition' in prod) {
+        prod.condition = eval('(function(' + vars.join(',') + ') { return ' + prod.condition + '; })');
+      }
+      
+      // replace successors with functions
+      prod.successor = eval(compileSuccessor(prod.successor));
+      
+      // index by command
+      if (!(prod.c in result)) {
+        result[prod.c] = [];
+      }
+      result[prod.c].push(prod);
+    }
+    
+    return result;
+  }
+  
+  function compileSuccessor(successor) {
+    var result = [];
+    
+    return result.join('');
+  }
+  
   exports.generate = generate;
 })(jQuery);
