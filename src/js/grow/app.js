@@ -71,7 +71,7 @@
         tree.program = Generator.generate(tree.productions, tree.program);
         tree.vector = Vectorizor.vectorize(tree.program);
         
-        console.log(tree.vector.length);
+        console.log(tree.program);
         
         // save
         model.set(tree);
@@ -120,7 +120,7 @@
     
     click: function(e) {
       var tree = {
-        program: Turtle.parse('F(3)'),
+        program: Turtle.parse('F(15)'),
         energy: 3,
         vector: [ 'm', 0, 0, 'l', 0, 20 ],
         productions: {

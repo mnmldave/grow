@@ -7,6 +7,36 @@
   };
   
   /**
+   * Optimizes a program.
+   */
+  var optimize = function(program) {
+    return compressDraws($.extend(true, [], program));
+  };
+  
+  /**
+   * Compresses adjacent drawing instructions.
+   */
+  var compressDraws = function(program) {
+    var i, stmt;
+    
+    // TODO ignoring branches, replace all adjacent F operations with one,
+    // then prefix each branch with an 'f' that will
+    for (i = 0; i < program.length; i++) {
+      stmt = program[i];
+      if ('c' in stmt) {
+        // module
+        if (stmt.c === 'F') {
+        }
+      } else {
+        // branch
+      }
+    }
+    
+    return program;
+  };
+  
+
+  /**
    * Compiles a turtle program into an array of move and line instructions
    * suitable for rendering. The supported turtle modules are:
    *
@@ -35,8 +65,8 @@
     // always move to the origin first
     result.push('m', 0, 0);
     
-    // traverse program and append instructions
-    Turtle.iterate(program, {
+    // traverse optimized program and append instructions
+    Turtle.iterate(optimize(program), {
       onModule: function(c, p) {
         switch(c) {
           case 'F':
@@ -63,6 +93,7 @@
       
       onBranchEnd: function() {
         state = stack.pop();
+        result.push('m', state.loc[0], state.loc[1]);
       }
     });
     
