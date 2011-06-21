@@ -25,9 +25,8 @@ ProductionList
       }
 
 Production
-  = pre:(Command _ '<' _)? 
-    c:Command variables:('(' _ IdentifierList _ ')')? 
-    post:(_ '>' _ Command)? 
+  = c:Command 
+    variables:('(' _ IdentifierList _ ')')? 
     condition:(_ ':' _ BooleanExpression)? 
     _ '->' _ 
     successor:StatementList {
@@ -36,12 +35,6 @@ Production
       result.c = c;
       if (variables) {
         result.variables = variables[2];
-      }
-      if (pre) {
-        result.pre = pre[0];
-      }
-      if (post) {
-        result.post = post[3];
       }
       if (condition) {
         result.condition = condition[3];

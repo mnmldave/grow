@@ -57,7 +57,7 @@
         expect(turtle.parseProductions(src)).toEqual([{ c: 'F', successor: [ { c: 'F' } ] }]);
       });
 
-      it("should parse contextual productions", function() {
+      xit("should parse contextual productions", function() {
         expect(turtle.parseProductions('A < F -> F')).toEqual([{ c: 'F', pre: 'A', successor: [ { c: 'F' } ] }]);
         expect(turtle.parseProductions('F > B -> F')).toEqual([{ c: 'F', post: 'B', successor: [ { c: 'F' } ] }]);
         expect(turtle.parseProductions('A < F > B -> F')).toEqual([{ c: 'F', pre: 'A', post: 'B', successor: [ { c: 'F' } ] }]);
@@ -68,7 +68,7 @@
         expect(turtle.parseProductions('F(t,b) : t>5 -> F(t)')).toEqual([{ c: 'F', variables: ['t', 'b'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, successor: [ { c: 'F', p: ['t'] } ] }]);
       });
 
-      it("should parse contextual and conditional productions", function() {
+      xit("should parse contextual and conditional productions", function() {
         expect(turtle.parseProductions('A < F(t) : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, pre: 'A', successor: [ { c: 'F' } ] }]);
         expect(turtle.parseProductions('F(t) > B : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, post: 'B', successor: [ { c: 'F' } ] }]);
         expect(turtle.parseProductions('A < F(t) > B : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, pre: 'A', post: 'B', successor: [ { c: 'F' } ] }]);

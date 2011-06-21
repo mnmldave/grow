@@ -24,8 +24,11 @@
     });
 
     it("should generate from doubling", function() {
-      expect(generate('F', 'F->FF')).toEqual('FF');
-      expect(generate('F(7)', 'F(t)->F(t)F(t)')).toEqual('F(7)F(7)');
+      expect(generate('F', 'F -> FF')).toEqual([
+        { c: 'F' },
+        { c: 'F' }
+      ]);
+      // expect(generate('F(7)', 'F(t)->F(t)F(t)')).toEqual('F(7)F(7)');
     });
 
     it("should skip condition", function() {
