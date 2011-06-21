@@ -364,7 +364,23 @@ a:hover {
   padding: 0 20px;
   float: right;
 }
-.fadein {
+.seed-dialog table {
+  width: 100%;
+}
+.seed-dialog table th, .seed-dialog table td {
+  text-align: left;
+  padding: 4px;
+}
+.seed-dialog table td {
+  width: 100%;
+}
+.seed-dialog table td .ui-slider {
+  margin-top: 5px;
+}
+.seed-dialog table textarea {
+  width: 100%;
+}
+.js .fadein {
   display: none;
 }
 /* Utilities */

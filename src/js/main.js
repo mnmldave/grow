@@ -4,5 +4,8 @@
   require('backbone').history.start();
   
   $('.fadein').delay(100).fadeIn(1000);
-  $('.fancybox').fancybox();
+  $('.fancybox').fancybox({
+    width: 640,
+    height: 480
+  });
 })(jQuery);

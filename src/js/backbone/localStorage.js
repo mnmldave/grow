@@ -96,6 +96,7 @@
   
   if (typeof exports != 'undefined') {
     exports.sync = sync;
+    exports.Store = Store;
   } else if (typeof Backbone != 'undefined') {
     Backbone.sync = sync;
   } else {
