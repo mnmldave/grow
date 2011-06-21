@@ -755,13 +755,13 @@
         }
         
         
-        if (input.substr(pos).match(/^[a-zA-Z0-9+]/) !== null) {
+        if (input.substr(pos).match(/^[a-zA-Z0-9+\-]/) !== null) {
           var result1 = input.charAt(pos);
           pos++;
         } else {
           var result1 = null;
           if (reportMatchFailures) {
-            matchFailed("[a-zA-Z0-9+]");
+            matchFailed("[a-zA-Z0-9+\\-]");
           }
         }
         var result0 = result1 !== null

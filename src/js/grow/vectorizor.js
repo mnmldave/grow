@@ -1,5 +1,5 @@
 (function($) {
-  var Turtle = require('grow/turtle');
+  var turtle = require('grow/turtle');
   
   var move = function(location, direction, distance) {
     location[0] = location[0] + (Math.cos(direction) * distance);
@@ -66,7 +66,7 @@
     result.push('m', 0, 0);
     
     // traverse optimized program and append instructions
-    Turtle.iterate(optimize(program), {
+    turtle.iterateProgram(optimize(program), {
       onModule: function(c, p) {
         switch(c) {
           case 'F':

@@ -19,7 +19,7 @@
       _.bindAll(this, 'start', 'tick', 'stop', 'render', 'update', 'click');
       
       // set up canvas context
-      this.fps = 30;
+      this.fps = 1;
       this.grower = options.grower;
       this.running = false;
       
@@ -58,7 +58,10 @@
         tree.energy = tree.energy - 1;
         
         // generate a new version of the tree and compile vector instructions
-        tree.program = generator.generate(tree.productions, tree.program);
+        tree.program = generator.generate({
+          productions: tree.productions,
+          program: tree.program
+        });
         tree.vector = vectorizor.vectorize(tree.program);
         
         // save
@@ -108,13 +111,9 @@
     
     click: function(e) {
       var tree = {
-        program: turtle.parse('F(15)'),
         energy: 3,
-        productions: {
-          'F': [
-            turtle.parse('F(n)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)')
-          ]
-        },
+        program: 'F(5)',
+        productions: 'F -> F(n+2)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)',
         x: e.originalEvent.x + 0.5,
         y: e.originalEvent.y + 0.5
       };
@@ -137,7 +136,7 @@
         collection: this.garden,
         grower: this.grower
       });
-      this.gardenView.render();
+      this.gardenView.render().start();
     },
     
     index: function() {

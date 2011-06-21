@@ -10,16 +10,22 @@
     var i, stmt, options = { onModule: function(){}, onBranchStart: function(){}, onBranchEnd: function(){} };
     
     $.extend(options, args);
-    for (i = 0; i < program.length; i++) {
-      stmt = program[i];
-      if ('c' in stmt) {
-        // module
-        options.onModule(stmt.c, stmt.p);
-      } else {
-        // branch
-        options.onBranchStart();
-        iterateProgram(stmt, options);
-        options.onBranchEnd();
+    if (program && 'c' in program) {
+      // module
+      options.onModule(program.c, program.p);
+    } else {
+      // branch
+      for (i = 0; i < program.length; i++) {
+        stmt = program[i];
+        if ('c' in stmt) {
+          // module
+          options.onModule(stmt.c, stmt.p);
+        } else {
+          // branch
+          options.onBranchStart();
+          iterateProgram(stmt, options);
+          options.onBranchEnd();
+        }
       }
     }
   };

@@ -28,7 +28,28 @@
         { c: 'F' },
         { c: 'F' }
       ]);
-      // expect(generate('F(7)', 'F(t)->F(t)F(t)')).toEqual('F(7)F(7)');
+      expect(generate('F(7)', 'F(t)->F(t)F(t)')).toEqual([
+        { c: 'F', p: [7] },
+        { c: 'F', p: [7] }
+      ]);
+    });
+
+    it("should generate branches", function() {
+      expect(generate('F', 'F -> F[F]')).toEqual([
+        { c: 'F' },
+        [
+          { c: 'F' }
+        ]
+      ]);
+      expect(generate('[F]', 'F -> FF')).toEqual([
+        [
+          { c: 'F' },
+          { c: 'F' }
+        ]
+      ]);
+      expect(generate('F', 'F -> F[FF]', 2)).toEqual(
+        turtle.parseProgram('F[FF][F[FF]F[FF]]')
+      );
     });
 
     it("should skip condition", function() {
@@ -41,6 +62,15 @@
       expect(generate('F(7)', 'F(t) : t < 8 -> F(t+1)')).toEqual([
         { 'c': 'F', 'p': [8] }
       ])
+    });
+    
+    it('should generate example 1.24a', function() {
+      expect(generate('F', 'F -> F[+F]F[-F]F'), 1).toEqual(
+        turtle.parseProgram('F[+F]F[-F]F')
+      );
+      expect(generate('F', 'F -> F[+F]F[-F]F', 2)).toEqual(
+        turtle.parseProgram('F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F')
+      );
     });
   });
 })();

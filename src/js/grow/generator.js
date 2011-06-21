@@ -3,7 +3,8 @@
  * @author dave heaton <dave@bit155.com>
  */
 (function($) {
-  var turtle = require('grow/turtle');
+  var turtle = require('grow/turtle'),
+      debug = false;
   
   /**
    * Generates the next iteration of a program.
@@ -16,52 +17,50 @@
    * @returns a processed program object model
    */
   function generate(options) {
-    var result = [], i, program, productions;
-    
-    program = toProgram(options.program);
-    productions = toProductionIndex(options.productions);
-
-    for (i = 0; i < program.length; i++) {
-      $.merge(result, expand(productions, program, i));
-    }
-
-    return result;
+    return rewrite(toProductionIndex(options.productions), toProgram(options.program)).pop();
   }
 
-  function expand(productions, program, index) {
-    var prod, 
-        stmt,
-        result;
+  function rewrite(productions, stmt) {
+    var i, production, result = stmt, branches, node;
+
+    if (debug) {
+      console.group('rewrite()');
+      console.log('Statement: ', turtle.formatProgram(stmt));
+    }
     
-    stmt = program[index];
     if ('c' in stmt) {
       // module
-      prod = findProduction(productions, program, index);
-      if (prod) {
-        if ('p' in stmt) {
-          result = prod.successor.apply(null, stmt.p);
-        } else {
-          result = prod.successor();
-        }
-
-        if (!result) {
-          result = [];
-        }
-      } else {
-        result = [ stmt ];
+      production = findProduction(productions, stmt);
+      if (production) {
+        result = production.successor.apply(null, stmt.p ? stmt.p : []);
       }
     } else {
-      // branch
-      result = [ generate(productions, stmt) ];
+      // branch - rewrite each member
+      branches = [];
+      for (i = 0; i < stmt.length; i++) {
+        node = rewrite(productions, stmt[i]);
+        if (node) {
+          if ('c' in node) {
+            branches.push(node);
+          } else {
+            $.merge(branches, node);
+          }
+        }
+      }
+      result = [ branches ];
+    }
+
+    if (debug) {
+      console.log('Result: ', turtle.formatProgram(result));
+      console.groupEnd();
     }
     
     return result;
   }
 
-  function findProduction(productions, program, index) {
-    var i, module, result, options;
+  function findProduction(productions, module) {
+    var i, result, options;
     
-    module = program[index];
     if (module.c in productions) {
       options = productions[module.c];
       for (i = 0; i < options.length; i++) {
@@ -196,7 +195,10 @@
     })(expression, variables, []).join('');
   }
   
-  
-  
+  exports.debug = function(f) {
+    debug = true;
+    f.apply(null, []);
+    debug = false;
+  };
   exports.generate = generate;
 })(jQuery);

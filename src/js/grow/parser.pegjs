@@ -82,7 +82,7 @@ Module
     }
 
 Command
-  = c:[a-zA-Z0-9+] { return c; }
+  = c:[a-zA-Z0-9+-] { return c; }
 
 ParameterList
   = head:Parameter _ tail:("," _ Parameter)* {
