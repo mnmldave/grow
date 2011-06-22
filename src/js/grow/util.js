@@ -1,4 +1,7 @@
 (function($) {
+  /**
+   * Utility for making DOM elements.
+   */
   var make = function() {
     var args = Array.prototype.slice.call(arguments), result;
 

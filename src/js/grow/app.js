@@ -1,7 +1,7 @@
 (function() {
   var Backbone = require('backbone'),
       BackboneLocalStorage = require('backbone/localStorage'),
-      turtle = require('grow/turtle'),
+      grow = require('grow/grow'),
       make = require('grow/util').make;
   
   Backbone.sync = BackboneLocalStorage.sync;
@@ -23,7 +23,7 @@
     },
     
     render: function() {
-      turtle.render(this.model.attributes, this.el);
+      grow.render(this.model.attributes, this.el);
       return this;
     }
   });
@@ -59,7 +59,7 @@
         model: this.treeModel
       });
       
-      this.updateTimer = setInterval(this.update, 30/1000);
+      this.updateTimer = setInterval(this.update, 60/1000);
       
       $(window).resize(this.resize).resize();
       $('#canvas').click(this.click);
@@ -134,7 +134,7 @@
     },
     
     update: function() {
-      this.treeModel.save(turtle.update(this.treeModel.toJSON()));
+      this.treeModel.save(grow.update(this.treeModel.toJSON()));
     },
     
     resize: function(e) {

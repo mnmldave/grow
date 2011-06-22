@@ -243,17 +243,17 @@ input:invalid, textarea:invalid {
   background-color: #f0dddd;
 }
 ::-moz-selection {
-  background: #4c4c4c;
+  background: #888888;
   color: #fff;
   text-shadow: none;
 }
 ::selection {
-  background: #4c4c4c;
+  background: #888888;
   color: #fff;
   text-shadow: none;
 }
 a:link {
-  -webkit-tap-highlight-color: #4c4c4c;
+  -webkit-tap-highlight-color: #888888;
 }
 button {
   width: auto;
@@ -266,7 +266,7 @@ body,
 select,
 input,
 textarea {
-  color: #444;
+  color: #555555;
 }
 h1,
 h2,
@@ -277,11 +277,11 @@ h6 {
   font-weight: bold;
 }
 a, a:active, a:visited {
-  color: #4c4c4c;
+  color: #888888;
   text-decoration: none;
 }
 a:hover {
-  color: #4c4c4c;
+  color: #888888;
 }
 #container {
   position: absolute;
@@ -304,11 +304,9 @@ a:hover {
 }
 #container header h1 {
   font: 36px/1.111 "Kreon", sans-serif;
-  text-shadow: 0 1px 0 #fff;
 }
 #container header h1 em {
   font-weight: 300;
-  color: #ccc;
 }
 #container nav {
   float: right;
@@ -317,7 +315,6 @@ a:hover {
   top: 20px;
   z-index: 1000;
   font: 14px/1.429 "Kreon", sans-serif;
-  text-shadow: 0 1px 0 #fff;
 }
 #container nav ul {
   list-style: none;
@@ -336,10 +333,8 @@ a:hover {
   width: 100%;
   height: 100%;
 }
-#container #main #garden {
-  background: #f4f4f4;
-  background: -webkit-gradient(linear, left bottom, left top, color-stop(0, #dcdcdc), color-stop(1, #f0f0f0));
-  background: -moz-linear-gradient(center bottom, #dcdcdc 0%, #f0f0f0 100%);
+#container #main #canvas {
+  background: #fff;
   width: 100%;
   height: 100%;
   margin: 0;
