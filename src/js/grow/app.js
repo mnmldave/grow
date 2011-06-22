@@ -1,8 +1,6 @@
 (function() {
   var Backbone = require('backbone'),
       BackboneLocalStorage = require('backbone/localStorage'),
-      generator = require('grow/generator'),
-      vectorizor = require('grow/vectorizor'),
       turtle = require('grow/turtle'),
       make = require('grow/util').make;
   
@@ -25,46 +23,8 @@
     },
     
     render: function() {
-      var self = this,
-          ctx,
-          tree = this.model.attributes,
-          vector = tree.vector,
-          i, c;
-      
-      var start = new Date().getTime();
-      if (vector) {
-        ctx = this.el.getContext('2d');
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.save();
-        ctx.strokeStyle = '#888';
-        ctx.lineWidth = 0.1;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.beginPath();
-        ctx.translate(ctx.canvas.width / 2, ctx.canvas.height);
-        ctx.rotate(Math.PI);
-      
-        for (i = 0; i < vector.length; i++) {
-          c = vector[i];
-          switch (c) {
-            case 'm':
-              // move to (x,y)
-              ctx.moveTo(vector[++i], vector[++i]);
-              break;
-            case 'l':
-              // draw a line to (x,y)
-              ctx.lineTo(vector[++i], vector[++i]);
-              break;
-            default:
-              throw new Error("Unrecognized instruction: " + c);
-          }
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
-      console.log('Rendered in ' + (new Date().getTime() - start) + 'ms');
-      
-      return self;
+      turtle.render(this.model.attributes, this.el);
+      return this;
     }
   });
   
@@ -174,23 +134,7 @@
     },
     
     update: function() {
-      var tree = this.treeModel.toJSON();
-      
-      if (!(tree.iterations > 0)) {
-        return;
-      }
-      
-      // generate a new version of the tree and compile vector instructions
-      // for rendering
-      tree.program = generator.generate({
-        productions: tree.productions,
-        program: tree.program
-      });
-      tree.vector = vectorizor.vectorize(tree.program);
-      tree.iterations = tree.iterations - 1;
-      
-      // save
-      this.treeModel.save(tree);
+      this.treeModel.save(turtle.update(this.treeModel.toJSON()));
     },
     
     resize: function(e) {

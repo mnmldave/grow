@@ -9,6 +9,9 @@ start
   = _ p:ProductionList _ { return p; }
   / _ p:Program _ { return p; }
 
+Command
+  = c:[a-zA-Z0-9+-/\&^@] { return c; }
+
 ProductionList
   = head:Production _ tail:(',' _ Production)* {
         var elements = [], i;
@@ -80,9 +83,6 @@ Module
       
       return result;
     }
-
-Command
-  = c:[a-zA-Z0-9+-] { return c; }
 
 ParameterList
   = head:Parameter _ tail:("," _ Parameter)* {

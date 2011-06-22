@@ -1,6 +1,7 @@
 (function($) {
   var turtle = require('grow/turtle');
   
+  var debug = false;
   var move = function(location, direction, distance) {
     location[0] = location[0] + (Math.cos(direction) * distance);
     location[1] = location[1] + (Math.sin(direction) * distance);
@@ -62,23 +63,21 @@
           dir: Math.PI / 2
         };
 
-    // always move to the origin first
-    result.push('m', 0, 0);
-    
     // traverse optimized program and append instructions
     turtle.iterateProgram(optimize(program), {
       onModule: function(c, p) {
         switch(c) {
           case 'F':
             // draw a line x points forward and then move
-            move(state.loc, state.dir, p[0]);
-            result.push('l', state.loc[0], state.loc[1], 
+            result.push('p',
                         'm', state.loc[0], state.loc[1]);
+            move(state.loc, state.dir, p[0]);
+            result.push('l', state.loc[0], state.loc[1],
+                        's');
             break;
           case 'f':
             // move x points
             move(state.loc, state.dir, p[0]);
-            result.push('m', state.loc[0], state.loc[1]);
             break;
           case '+':
             // rotate by x degrees
@@ -93,12 +92,16 @@
       
       onBranchEnd: function() {
         state = stack.pop();
-        result.push('m', state.loc[0], state.loc[1]);
       }
     });
     
     return result;
   };
   
+  exports.debug = function(f) {
+    debug = true;
+    f.apply(null);
+    debug = false;
+  };
   exports.vectorize = vectorize;
 })(jQuery);

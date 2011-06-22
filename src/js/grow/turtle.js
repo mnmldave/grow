@@ -1,6 +1,12 @@
+/**
+ * High-level encapsulation of the Turtle functionality, from parsing Turtle
+ * grammars to producing vector instruction language, to rendering to a 
+ * canvas.
+ */
 (function($) {
-
-  var parser = require('grow/parser');
+  var parser = require('grow/parser'),
+      generator = require('grow/generator'),
+      vectorizor = require('grow/vectorizor');
 
   /**
    * Function for a DFS of a program using onModule, onBranchStart and 
@@ -66,7 +72,7 @@
     }
     
     return tree.elements;
-  }
+  };
   
   var parseProductions = function(str) {
     var tree = parser.parse(str);
@@ -76,8 +82,67 @@
     }
     
     return tree.elements;
-  }
+  };
+  
+  var update = function(tree) {
+    if (tree.iterations > 0) {
+      tree.program = generator.generate({
+        productions: tree.productions,
+        program: tree.program
+      });
+      tree.vector = vectorizor.vectorize(tree.program);
+      tree.iterations = tree.iterations - 1;
+    }
+    
+    return tree;
+  };
 
+  var render = function(tree, canvas) {
+    var self = this,
+        ctx,
+        vector = tree.vector,
+        i, c;
+
+    if (vector) {
+      ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.save();
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 0.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.translate(ctx.canvas.width / 2, ctx.canvas.height);
+      ctx.rotate(Math.PI);
+    
+      for (i = 0; i < vector.length; i++) {
+        c = vector[i];
+        switch (c) {
+          case 'p':
+            ctx.beginPath();
+            break;
+          case 's':
+            ctx.stroke();
+            break;
+          case 'm':
+            // move to (x,y)
+            ctx.moveTo(vector[++i], vector[++i]);
+            break;
+          case 'l':
+            // draw a line to (x,y)
+            ctx.lineTo(vector[++i], vector[++i]);
+            break;
+          default:
+            throw new Error("Unrecognized instruction: " + c);
+        }
+      }
+      ctx.restore();
+    }
+  };
+
+  exports.update = update;
+  exports.render = render;
+
+  // private advanced api
   exports.parseProgram = parseProgram;
   exports.parseProductions = parseProductions;
   exports.iterateProgram = iterateProgram;
