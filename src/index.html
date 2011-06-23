@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Gro.js</title>
+  <title>grow.js</title>
   <meta name="description" content="">
   <meta name="author" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,22 +16,32 @@
 <body>
   <div id="container" class="clearfix">
     <header>
-      <h1 id="logo" class="fadein"><a href="#">gro.js</a> <em>a javascript <a href="http://en.wikipedia.org/wiki/L-system" target="_blank">lindenmayer system</a> simulation</em></h1>
+      <h1 id="logo">grow.js</h1>
     </header>
-    
-    <nav>
-      <ul class="fadein">
-        <li><a class="iframe fancybox" href="spec.html">Tests</a></li>
-      </ul>
-    </nav>
 
     <div id="main" role="main">
-      <canvas id="canvas"></canvas>
+      <section id="intro" class="fadeout">
+        <p>Click or tap anywhere...</p>
+      </section>
+      <section id="seed-collection-view" class="hidden">
+        <form>
+          <label for="seed-name">Name</label>
+          <input id="seed-name" name="name" type="text" class="text" class="ui-widget"><br/>
+          <label for="seed-iterations">Iterations</label>
+          <input id="seed-iterations" name="iterations" size="4" type="text" class="text"><br/>
+          <label for="seed-program">Program</label>
+          <input id="seed-program" name="program" type="text" class="text"><br/>
+          <label for="seed-productions">Productions</label>
+          <textarea id="seed-productions" name="productions" rows="5"></textarea>
+        </form>
+      </section>
+      <canvas id="tree-view"></canvas>
     </div>
 
     <footer class="clearfix">
-      <section id="status"></section>
-      <section id="copyright">Copyright &copy; 2011 Dave Heaton.</section>
+      <p>
+        
+      </p>
     </footer>
   </div>
 

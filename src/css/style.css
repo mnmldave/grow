@@ -304,6 +304,8 @@ a:hover {
 }
 #container header h1 {
   font: 36px/1.111 "Kreon", sans-serif;
+  font-weight: 300;
+  color: rgba(85, 85, 85, 0.5);
 }
 #container header h1 em {
   font-weight: 300;
@@ -323,7 +325,7 @@ a:hover {
 }
 #container nav ul li {
   float: left;
-  margin-left: 20px;
+  margin-left: 10px;
 }
 #container #main {
   position: fixed;
@@ -333,7 +335,16 @@ a:hover {
   width: 100%;
   height: 100%;
 }
-#container #main #canvas {
+#container #main #intro {
+  position: fixed;
+  height: 40px;
+  width: 100%;
+  top: 50%;
+  margin-top: -20px;
+  text-align: center;
+  font: 18px/1.111 "Kreon", sans-serif;
+}
+#container #main #tree-view {
   background: #fff;
   width: 100%;
   height: 100%;
@@ -359,23 +370,23 @@ a:hover {
   padding: 0 20px;
   float: right;
 }
-.seed-dialog table {
+#seed-view table {
   width: 100%;
 }
-.seed-dialog table th, .seed-dialog table td {
+#seed-view table th, #seed-view table td {
   text-align: left;
   padding: 4px;
 }
-.seed-dialog table td {
+#seed-view table td {
   width: 100%;
 }
-.seed-dialog table td .ui-slider {
+#seed-view table td .ui-slider {
   margin-top: 5px;
 }
-.seed-dialog table textarea {
+#seed-view table textarea {
   width: 100%;
 }
-.js .fadein {
+.hidden, .fadein {
   display: none;
 }
 /* Utilities */

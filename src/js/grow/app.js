@@ -16,16 +16,81 @@
     model: Backbone.Model
   });
   
-  var TreeView = Backbone.View.extend({
+  var SeedCollectionView = Backbone.View.extend({
     initialize: function(options) {
-      _.bindAll(this, 'render');
-      this.model.bind('change', this.render);
+      _.bindAll(this, 'update', 'render', 'show', 'hide', 'plant');
+      this.collection.bind('all', this.update);
+    },
+    
+    show: function() {
+      $(this.el).dialog('open');
+    },
+    
+    hide: function() {
+      $(this.el).dialog('close');
+    },
+    
+    plant: function() {
+      $(this.el).dialog('close');
+    },
+    
+    update: function() {
+      var self = this;
+      
+      
+      
+      return self;
     },
     
     render: function() {
+      var self = this;
+      
+      $(this.el).dialog({
+        autoOpen: false,
+        show: 'fade',
+        hide: 'fade',
+        title: 'Configure',
+        width: 640,
+        height: 480,
+        buttons: {
+          'Cancel': self.hide,
+          'Plant': self.plant
+        }
+      }).removeClass('hidden');
+      
+      return self;
+    }
+  });
+  
+  var TreeView = Backbone.View.extend({
+    initialize: function(options) {
+      _.bindAll(this, 'render', 'resize');
+      this.model.bind('change', this.render);
+      $(window).resize(this.resize);
+    },
+    
+    render: function() {
+      // TODO stop render if 
       grow.render(this.model.attributes, this.el);
       return this;
+    },
+    
+    resize: function(e) {
+      var self = this;
+      
+      if (self.resizeTimer) {
+        clearTimeout(self.resizeTimer);
+      }
+      
+      self.resizeTimer = setTimeout(function() {
+        var ctx = self.el.getContext('2d');
+        ctx.canvas.width = window.innerWidth;
+        ctx.canvas.height = window.innerHeight;
+
+        self.render();
+      }, 100);
     }
+    
   });
   
   var Controller = Backbone.Controller.extend({
@@ -34,126 +99,52 @@
     },
 
     initialize: function(options) {
-      _.bindAll(this, 'index', 'update', 'resize', 'click', 'seed');
+      _.bindAll(this, 'index', 'update', 'reset');
       
       this.seedCollection = new SeedCollection();
       this.seedCollection.fetch();
-      if (this.seedCollection.length == 0) {
-        this.seedCollection.add({
-          name: 'Example 1.24',
-          iterations: 4,
-          program: 'F(3)',
-          productions: 'F -> F(n*1)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)'
-        });
-      }
-      this.seedModel = this.seedCollection.at(0);
+      
+      this.seedCollectionView = new SeedCollectionView({
+        el: document.getElementById('seed-collection-view'),
+        collection: this.seedCollection
+      }).render();
       
       this.treeCollection = new TreeCollection();
       this.treeCollection.fetch();
       if (this.treeCollection.length == 0) {
         this.treeCollection.add({});
       }
+      
       this.treeModel = this.treeCollection.at(0);
+      
       this.treeView = new TreeView({
-        el: document.getElementById('canvas'),
+        el: document.getElementById('tree-view'),
         model: this.treeModel
       });
-      
-      this.updateTimer = setInterval(this.update, 60/1000);
-      
-      $(window).resize(this.resize).resize();
-      $('#canvas').click(this.click);
+      $('#main').click(this.seedCollectionView.show);
+    },
+    
+    reset: function() {
+      this.seedCollection.add(
+        {
+          name: 'Example 1.24',
+          iterations: 4,
+          program: 'F(3)',
+          productions: 'F -> F(n)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)',
+          x: 'center',
+          y: 'bottom'
+        },
+        {
+          name: 'Koch'
+        }
+      );
     },
     
     index: function() {
     },
     
-    seed: function() {
-      var self = this,
-          iterations,
-          program,
-          productions,
-          form,
-          dialog,
-          start;
-      
-      
-      form = make('form', [
-        make('table', [
-          make('tr', [
-            make('th').text('Iterations'),
-            make('td', [ 
-              iterations = make('input').val(self.seedModel.get('iterations'))
-            ])
-          ]),
-          make('tr', [
-            make('th').text('Program'),
-            make('td', [ 
-              program = make('input').val(self.seedModel.get('program'))
-            ])
-          ]),
-          make('tr', [
-            make('th').text('Productions'),
-            make('td', [ 
-              productions = make('textarea', { rows: 4 }).val(self.seedModel.get('productions'))
-            ])
-          ])
-        ])
-      ]);
-      
-      dialog = $('<div>', { 'class': 'seed-dialog' }).append(form);
-      dialog.dialog({
-        title: 'Seed',
-        resizable: true,
-        modal: true,
-        width: 640,
-        buttons: [
-          {
-            text: 'Start',
-            click: function() {
-              var seed = {
-                'iterations': parseInt(iterations.val(), 10),
-                'program': program.val(),
-                'productions': productions.val()
-              };
-
-              self.seedModel.save(seed);
-              self.treeModel.save(seed);
-
-              $(this).dialog('close');
-            }
-          },
-          {
-            text: 'Cancel',
-            click: function() {
-              $(this).dialog('close');
-            }
-          }
-        ]
-      });
-    },
-    
     update: function() {
       this.treeModel.save(grow.update(this.treeModel.toJSON()));
-    },
-    
-    resize: function(e) {
-      var self = this;
-      if (self.resizeTimer) {
-        clearTimeout(self.resizeTimer);
-      }
-      
-      self.resizeTimer = setTimeout(function() {
-        var ctx = document.getElementById('canvas').getContext('2d');
-        ctx.canvas.width = window.innerWidth;
-        ctx.canvas.height = window.innerHeight;
-
-        self.treeView.render();
-      }, 100);
-    },
-    
-    click: function(e) {
-      this.seed();
     }
   });
   

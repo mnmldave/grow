@@ -1,16 +1,5 @@
 /**
- * Module that provides `update` and `render` methods for updating the state 
- * of a "tree" object and rendering it to a canvas, respectively.
- *
- * A tree object is typically instantiated with the number of rewrite 
- * iterations, the initial program string, and a string of production rules.
- * For example, a simple tree that just produces a long vertical line:
- *
- *     { iterations: 5, program: 'F(5)', productions: 'F -> F(n)F(n)' }
- *
- * After passing through update, the tree's program and productions will be
- * replaced with a compiled tree representation and a 'vector' attribute will
- * be added indicating rendering instructions.
+ * 
  *
  * @author Dave Heaton <dave@bit155.com>
  */
@@ -419,15 +408,12 @@
             ctx.stroke();
             break;
           case 'm':
-            // move to (x,y)
             ctx.moveTo(vector[++i], vector[++i]);
             break;
           case 'l':
-            // draw a line to (x,y)
             ctx.lineTo(vector[++i], vector[++i]);
             break;
           case 'w':
-            // set stroke width
             ctx.lineWidth = vector[++i];
             break;
           default:
