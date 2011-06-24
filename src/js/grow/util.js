@@ -1,4 +1,24 @@
 (function($) {
+  var position = function(n, min, max) {
+    if (typeof n === 'string') {
+      switch (n) {
+        case 'center':
+        case 'middle':
+          return min + (0.5 * (max - min));
+        case 'top':
+        case 'left':
+          return min;
+        case 'bottom':
+        case 'right':
+          return max;
+        default:
+          return n;
+      }
+    } else {
+      return n;
+    }
+  };
+  
   /**
    * Utility for making DOM elements.
    */

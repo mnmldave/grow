@@ -2,7 +2,7 @@
   var Backbone = require('backbone'),
       BackboneLocalStorage = require('backbone/localStorage'),
       lsystem = require('grow/lsystem'),
-      make = require('grow/util').make;
+      util = require('grow/util');
   
   Backbone.sync = BackboneLocalStorage.sync;
   
@@ -251,8 +251,6 @@
         
         if (index < tree.program.length) {
           ctx.save();
-
-          // TODO use tree x,y
           ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
           ctx.rotate(Math.PI);
           turtle.set(tree.turtle || {});

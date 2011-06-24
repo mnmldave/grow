@@ -79,6 +79,14 @@
     }
   };
   
+  /**
+   * Draws a turtle program, or program segment, to a canvas context.
+   *
+   * @param (Context) ctx canvas context
+   * @param (Array|String) program to draw
+   * @param (Integer) from where in the program to start drawing (inclusive)
+   * @param (Integer) to program index the turtle should draw up to (exclusive)
+   */
   Turtle.prototype.draw = function(ctx, program, from, to) {
     var self = this,
         i,
@@ -92,8 +100,6 @@
     
     ctx.strokeStyle = self.color;
     ctx.lineWidth = self.width;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
     ctx.moveTo(self.x, self.y);
     
     for (i = from; i < to; i++) {

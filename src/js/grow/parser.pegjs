@@ -1,6 +1,6 @@
 /*
- * PEG for the grammar outlined in "The Algorithmic Beauty of Plants" by
- * Przemyslaw Prusinkiewicz and Aristid Lindenmayer.
+ * PEG based on lsystem grammar outlined in "The Algorithmic Beauty of Plants"
+ * by Przemyslaw Prusinkiewicz and Aristid Lindenmayer.
  *
  * By Dave Heaton <dave@bit155.com>
  */
@@ -13,7 +13,7 @@ Command
   = c:[a-zA-Z0-9+-/\&^@[\]] { return c; }
 
 ProductionList
-  = head:Production _ tail:(',' _ Production)* {
+  = head:Production _ tail:(ProductionDelimiter _ Production)* {
         var elements = [], i;
         
         elements.push(head);
@@ -28,8 +28,10 @@ ProductionList
       }
 
 Production
-  = c:Command 
+  = pre:(Command _ '<' _)?
+    c:Command
     variables:('(' _ IdentifierList _ ')')? 
+    post:(_ '>' _ Command)?
     condition:(_ ':' _ BooleanExpression)? 
     _ '->' _ 
     successor:StatementList {
@@ -39,6 +41,12 @@ Production
       if (variables) {
         result.variables = variables[2];
       }
+      if (pre) {
+        result.pre = pre[0];
+      }
+      if (post) {
+        result.post = post[3];
+      }
       if (condition) {
         result.condition = condition[3];
       }
@@ -46,6 +54,9 @@ Production
       
       return result;
     }
+
+ProductionDelimiter
+  = [;\n\r]+
 
 Program
   = elements:StatementList {
@@ -192,4 +203,4 @@ Float
     }
 
 _
-  = [ \t\n\r]*
+  = [ \t]*

@@ -57,7 +57,7 @@
         expect(lsystem.parseProductions(src)).toEqual([{ c: 'F', successor: [ { c: 'F' } ] }]);
       });
 
-      xit("should parse contextual productions", function() {
+      it("should parse contextual productions", function() {
         expect(lsystem.parseProductions('A < F -> F')).toEqual([{ c: 'F', pre: 'A', successor: [ { c: 'F' } ] }]);
         expect(lsystem.parseProductions('F > B -> F')).toEqual([{ c: 'F', post: 'B', successor: [ { c: 'F' } ] }]);
         expect(lsystem.parseProductions('A < F > B -> F')).toEqual([{ c: 'F', pre: 'A', post: 'B', successor: [ { c: 'F' } ] }]);
@@ -68,10 +68,18 @@
         expect(lsystem.parseProductions('F(t,b) : t>5 -> F(t)')).toEqual([{ c: 'F', variables: ['t', 'b'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, successor: [ { c: 'F', p: ['t'] } ] }]);
       });
 
-      xit("should parse contextual and conditional productions", function() {
+      it("should parse contextual and conditional productions", function() {
         expect(lsystem.parseProductions('A < F(t) : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, pre: 'A', successor: [ { c: 'F' } ] }]);
         expect(lsystem.parseProductions('F(t) > B : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, post: 'B', successor: [ { c: 'F' } ] }]);
         expect(lsystem.parseProductions('A < F(t) > B : t>5 -> F')).toEqual([{ c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, pre: 'A', post: 'B', successor: [ { c: 'F' } ] }]);
+      });
+      
+      it("should parse multiple contextual and conditional productions", function() {
+        expect(lsystem.parseProductions('A < F(t) : t>5 -> F\nF(t) > B : t>5 -> F;A < F(t) > B : t>5 -> F')).toEqual([
+          { c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, pre: 'A', successor: [ { c: 'F' } ] },
+          { c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, post: 'B', successor: [ { c: 'F' } ] },
+          { c: 'F', variables: ['t'], condition: { type: 'BinaryOperation', op: '>', left: 't', right: 5 }, pre: 'A', post: 'B', successor: [ { c: 'F' } ] }
+        ]);
       });
     });
     
@@ -133,9 +141,9 @@
       });
     });
     
-    // ==============
-    // = Vectorizor =
-    // ==============
+    // ==========
+    // = Turtle =
+    // ==========
     
     describe("Turtle", function() {
       var MockContext = function() {
