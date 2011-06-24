@@ -283,6 +283,53 @@ a, a:active, a:visited {
 a:hover {
   color: #888888;
 }
+/* Utilities */
+.ir {
+  display: block;
+  text-indent: -999em;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  text-align: left;
+  direction: ltr;
+}
+.hidden {
+  display: none;
+  visibility: hidden;
+}
+.visuallyhidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus {
+  clip: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  position: static;
+  width: auto;
+}
+.invisible {
+  visibility: hidden;
+}
+.clearfix {
+  zoom: 1;
+}
+.clearfix:before, .clearfix:after {
+  content: "\0020";
+  display: block;
+  height: 0;
+  overflow: hidden;
+}
+.clearfix:after {
+  clear: both;
+}
+/* Layout */
 #container {
   position: absolute;
   top: 0;
@@ -370,68 +417,78 @@ a:hover {
   padding: 0 20px;
   float: right;
 }
-#seed-view table {
-  width: 100%;
+#seed-collection-view #seed-preset-list {
+  list-style: none;
+  zoom: 1;
 }
-#seed-view table th, #seed-view table td {
-  text-align: left;
-  padding: 4px;
-}
-#seed-view table td {
-  width: 100%;
-}
-#seed-view table td .ui-slider {
-  margin-top: 5px;
-}
-#seed-view table textarea {
-  width: 100%;
-}
-.hidden, .fadein {
-  display: none;
-}
-/* Utilities */
-.ir {
-  display: block;
-  text-indent: -999em;
-  overflow: hidden;
-  background-repeat: no-repeat;
-  text-align: left;
-  direction: ltr;
-}
-.hidden {
-  display: none;
-  visibility: hidden;
-}
-.visuallyhidden {
-  border: 0;
-  clip: rect(0 0 0 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  width: 1px;
-}
-.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus {
-  clip: auto;
-  height: auto;
-  margin: 0;
-  overflow: visible;
-  position: static;
-  width: auto;
-}
-.invisible {
-  visibility: hidden;
-}
-.clearfix:before, .clearfix:after {
+#seed-collection-view #seed-preset-list:before, #seed-collection-view #seed-preset-list:after {
   content: "\0020";
   display: block;
   height: 0;
   overflow: hidden;
 }
-.clearfix:after {
+#seed-collection-view #seed-preset-list:after {
   clear: both;
 }
-.clearfix {
+#seed-collection-view #seed-preset-list li {
+  float: left;
+}
+#seed-collection-view form {
+  margin-top: 20px;
+}
+#seed-collection-view form fieldset legend span {
+  display: block;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+}
+#seed-collection-view form fieldset ul {
+  margin: 0;
+  padding: 0;
+}
+#seed-collection-view form fieldset ul li {
+  margin-bottom: 10px;
   zoom: 1;
+}
+#seed-collection-view form fieldset ul li:before, #seed-collection-view form fieldset ul li:after {
+  content: "\0020";
+  display: block;
+  height: 0;
+  overflow: hidden;
+}
+#seed-collection-view form fieldset ul li:after {
+  clear: both;
+}
+#seed-collection-view form fieldset ul li .left {
+  width: 20%;
+  float: left;
+  max-width: 100px;
+}
+#seed-collection-view form fieldset ul li .right {
+  width: 76%;
+  float: left;
+  margin-left: 2%;
+}
+#seed-collection-view form fieldset ul li label {
+  text-align: right;
+}
+#seed-collection-view form fieldset ul li .ui-autocomplete-input {
+  -webkit-border-top-right-radius: 0;
+  -webkit-border-bottom-right-radius: 0;
+  -webkit-border-bottom-left-radius: 2px;
+  -webkit-border-top-left-radius: 2px;
+  -moz-border-top-right-radius: 0;
+  -moz-border-bottom-right-radius: 0;
+  -moz-border-bottom-left-radius: 2px;
+  -moz-border-top-left-radius: 2px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 2px;
+  border-top-left-radius: 2px;
+  border-right: none;
+}
+#seed-collection-view form fieldset ul li .ui-button-text {
+  font-size: 10px;
+}
+.hidden, .fadein {
+  display: none;
 }

@@ -10,7 +10,7 @@ start
   / _ p:Program _ { return p; }
 
 Command
-  = c:[a-zA-Z0-9+-/\&^@] { return c; }
+  = c:[a-zA-Z0-9+-/\&^@[\]] { return c; }
 
 ProductionList
   = head:Production _ tail:(',' _ Production)* {
@@ -65,13 +65,6 @@ StatementList
     }
  
 Statement
-  = Branch
-  / Module
-
-Branch
-  = '[' _ statements:StatementList _ ']' { return statements; }
-
-Module
   = command:Command params:('(' _ ParameterList _ ')')? {
       var result = {
         c: command
