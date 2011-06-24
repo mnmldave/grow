@@ -20,9 +20,10 @@
   Turtle.prototype.y = 0;
   Turtle.prototype.direction = Math.PI / 2;
   Turtle.prototype.color = '#888';
-  Turtle.prototype.width = 0.5;
+  Turtle.prototype.width = 1;
   
   Turtle.prototype.toJSON = function() {
+    var self = this;
     return {
       x: self.x,
       y: self.y,
@@ -56,7 +57,8 @@
    * Save the current state of the turtle to its stack.
    */
   Turtle.prototype.save = function() {
-    this.stack.push({ 
+    var self = this;
+    self.stack.push({ 
       x: self.x,
       y: self.y,
       direction: self.direction,
@@ -69,9 +71,11 @@
    * Restore the turtle to it's previous saved state on the stack.
    */
   Turtle.prototype.restore = function() {
-    var state = this.stack.pop();
+    var self = this,
+        state = self.stack.pop();
+        
     if (state) {
-      $.extend(this, state);
+      $.extend(self, state);
     }
   };
   
@@ -83,15 +87,15 @@
     
     program = toProgram(program);
     
-    from = from || 0;
-    to = to || program.length;
+    from = Math.max(0, from || 0);
+    to = Math.min(program.length, to || program.length);
     
-    ctx.save();
     ctx.strokeStyle = self.color;
     ctx.lineWidth = self.width;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.rotate(Math.PI);
+    ctx.moveTo(self.x, self.y);
+    
     for (i = from; i < to; i++) {
       module = program[i];
       command = self.commands[module.c];
@@ -99,7 +103,6 @@
         command.execute(self, module.p || [], ctx);
       }
     }
-    ctx.restore();
     
     return self;
   };
@@ -135,27 +138,28 @@
    */
   Turtle.prototype.commands = {
     '[': {
-      execute: function(turtle) {
+      execute: function(turtle, params, ctx) {
         turtle.save();
       }
     },
     ']': {
-      execute: function(turtle) {
+      execute: function(turtle, params, ctx) {
         turtle.restore();
+        ctx.moveTo(turtle.x, turtle.y);
       }
     },
     'F': {
       execute: function(turtle, params, ctx) {
         ctx.beginPath();
         ctx.moveTo(turtle.x, turtle.y);
-        turtle.move(params.length > 0 ? params[0] : 10);
+        turtle.move(params.length > 0 ? params[0] : 5);
         ctx.lineTo(turtle.x, turtle.y);
         ctx.stroke();
       }
     },
     'f': {
       execute: function(turtle, params) {
-        turtle.move(params.length > 0 ? params[0] : 10);
+        turtle.move(params.length > 0 ? params[0] : 5);
       }
     },
     '+': {
@@ -285,10 +289,11 @@
       if (i > 0) {
         script.push(',');
       }
+      
       script.push('{');
-      script.push('c:"', module.c, '"'); // XXX escape?
+      script.push('c:"', module.c, '"');
       if ('p' in module) {
-        script.push(',', 'p:[');
+        script.push(',p:[');
         for (j = 0; j < module.p.length; j++) {
           if (j > 0) {
             script.push(',');

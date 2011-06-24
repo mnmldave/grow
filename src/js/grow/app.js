@@ -76,7 +76,7 @@
       
       // set tree as only one in collection
       self.treeCollection.remove(self.treeCollection.models);
-      self.treeCollection.add($.extend(true, {}, self.seed()));
+      self.treeCollection.add($.extend(true, {}, tree));
       
       $(this.el).dialog('close');
     },
@@ -220,20 +220,23 @@
   
   var TreeCollectionView = Backbone.View.extend({
     initialize: function(options) {
-      _.bindAll(this, 'update', 'render', 'resize');
-      this.collection.bind('all', this.update);
-      $(window).resize(this.resize);
+      _.bindAll(this, 'render', 'resize', 'clear');
+      this.collection.bind('add', this.clear);
+      this.collection.bind('remove', this.clear);
+      $(window).resize(this.resize).resize();
     },
     
-    update: function() {
+    clear: function() {
       var self = this,
-          canvas = self.el;
-      
-      // clear canvas on update
-      ctx = canvas.getContext('2d');
+          ctx = self.el.getContext('2d');
+
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      
-      return this;
+      self.collection.each(function(model) {
+        model.set({ 
+          index: 0,
+          tree: {}
+        });
+      });
     },
     
     render: function() {
@@ -241,19 +244,25 @@
           turtle = new lsystem.Turtle(),
           ctx;
       
-      ctx = canvas.getContext('2d');
+      ctx = self.el.getContext('2d');
       self.collection.each(function(model) {
-        var tree = model.attributes,
+        var tree = model.toJSON(),
             index = tree.index || 0;
         
         if (index < tree.program.length) {
+          ctx.save();
+
           // TODO use tree x,y
-          ctx.translate(ctx.canvas.width / 2, ctx.canvas.height);
-          if (tree.turtle) {
-            turtle.set(tree.turtle);
-          }
-          turtle.draw(ctx, tree.program, index, index+1);
-          tree.turtle = turtle.toJSON();
+          ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
+          ctx.rotate(Math.PI);
+          turtle.set(tree.turtle || {});
+          turtle.draw(ctx, tree.program, index, index + 4);
+          ctx.restore();
+          
+          model.set({
+            turtle: turtle.toJSON(),
+            index: index + 4
+          });
         }
       });
     },
@@ -269,8 +278,7 @@
         var ctx = self.el.getContext('2d');
         ctx.canvas.width = window.innerWidth;
         ctx.canvas.height = window.innerHeight;
-
-        self.render();
+        self.clear();
       }, 100);
     }
     
@@ -283,7 +291,7 @@
     },
 
     initialize: function(options) {
-      _.bindAll(this, 'index', 'reset');
+      _.bindAll(this, 'loop', 'index', 'reset');
       
       this.treeCollection = new TreeCollection();
       this.treeCollection.fetch();
@@ -309,6 +317,13 @@
       if (this.seedCollection.length === 0) {
         this.reset();
       }
+      
+      requestAnimFrame(this.loop);
+    },
+    
+    loop: function() {
+      requestAnimFrame(this.loop);
+      this.treeCollectionView.render();
     },
     
     reset: function() {
@@ -321,7 +336,7 @@
                   name: 'Koch Island',
                   description: 'From page 8 of "Algorithmic Beauty of Plants".',
                   iterations: 2,
-                  program: 'F',
+                  program: 'F-F-F-F',
                   productions: 'F -> F-F+F+FF-F-F+F',
                   x: 'center',
                   y: 'bottom'

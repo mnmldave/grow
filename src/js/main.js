@@ -1,8 +1,4 @@
 (function($) {
-  var app = require('grow/app');
-  new app.Controller();
-  require('backbone').history.start();
-
   // via http://paulirish.com/2011/requestanimationframe-for-smart-animating/
   // shim layer with setTimeout fallback
   window.requestAnimFrame = (function(){
@@ -15,6 +11,10 @@
                   window.setTimeout(callback, 1000 / 60);
                 };
       })();
+
+  var app = require('grow/app');
+  new app.Controller();
+  require('backbone').history.start();
 
   $('.button').button();
   $('.fadeout').delay(2000).fadeOut(1000);
