@@ -378,11 +378,20 @@
     return false;
   };
   
+  var MockContext = function() {
+    var self = this,
+        methods = ['translate', 'rotate', 'beginPath', 'moveTo', 'lineTo', 'stroke', 'save', 'restore'];
+    _.each(methods, function(m) {
+      self[m] = (function() {});
+    });
+  };
+  
   // ===========
   // = Exports =
   // ===========
   
   exports.Turtle = Turtle;
+  exports.MockContext = MockContext;
   exports.parseProgram = parseProgram;
   exports.parseProductions = parseProductions;
   exports.generate = generate;

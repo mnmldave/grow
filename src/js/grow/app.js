@@ -4,6 +4,86 @@
       lsystem = require('grow/lsystem'),
       util = require('grow/util');
   
+  var presets = [
+    {
+      name: '1.6 Koch Island',
+      description: 'From page 8 of "Algorithmic Beauty of Plants".',
+      iterations: 3,
+      program: 'F-F-F-F',
+      productions: 'F -> F-F+F+FF-F-F+F'
+    },
+    {
+      name: '1.7a Quadratic Koch Island',
+      description: 'From page 9 of "Algorithmic Beauty of Plants".',
+      iterations: 2,
+      program: 'F-F-F-F',
+      productions: 'F -> F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F'
+    },
+    {
+      name: '1.7b Quadratic Snowflake Curve',
+      description: 'From page 9 of "Algorithmic Beauty of Plants".',
+      iterations: 4,
+      program: '-F',
+      productions: 'F -> F+F-F-F+F'
+    },
+    {
+      name: '1.8 Combination of Islands and Lakes',
+      description: 'From page 9 of "Algorithmic Beauty of Plants".',
+      iterations: 2,
+      program: 'F+F+F+F',
+      productions: 'F -> F+f-FF+F+FF+Ff+FF-f+FF-F-FF-Ff-FFF\nf->ffffff'
+    },
+    {
+      name: '1.9a',
+      description: 'From page 10 of "Algorithmic Beauty of Plants".',
+      iterations: 4,
+      program: 'F-F-F-F',
+      productions: 'F -> FF-F-F-F-F-F+F'
+    },
+    {
+      name: '1.9b',
+      description: 'From page 10 of "Algorithmic Beauty of Plants".',
+      iterations: 4,
+      program: 'F-F-F-F',
+      productions: 'F -> FF-F-F-F-FF'
+    },
+    {
+      name: '1.9c',
+      description: 'From page 10 of "Algorithmic Beauty of Plants".',
+      iterations: 3,
+      program: 'F-F-F-F',
+      productions: 'F -> FF-F+F-F-FF'
+    },
+    {
+      name: '1.9d',
+      description: 'From page 10 of "Algorithmic Beauty of Plants".',
+      iterations: 4,
+      program: 'F-F-F-F',
+      productions: 'F -> FF-F--F-F'
+    },
+    {
+      name: '1.9e',
+      description: 'From page 10 of "Algorithmic Beauty of Plants".',
+      iterations: 5,
+      program: 'F-F-F-F',
+      productions: 'F -> F-FF--F-F'
+    },
+    {
+      name: '1.9f',
+      description: 'From page 10 of "Algorithmic Beauty of Plants".',
+      iterations: 4,
+      program: 'F-F-F-F',
+      productions: 'F -> F-F+F-F-F'
+    },
+    {
+      name: '1.24',
+      description: 'From',
+      iterations: 4,
+      program: 'F(3)',
+      productions: 'F -> F(n)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)'
+    }
+  ];
+  
   Backbone.sync = BackboneLocalStorage.sync;
   
   var SeedModel = Backbone.Model.extend({
@@ -64,7 +144,9 @@
     
     plant: function() {
       var self = this,
-          tree = $.extend(true, {}, self.seed());
+          tree = $.extend(true, {}, self.seed()),
+          ctx,
+          turtle;
       
       // generate the tree
       for (i = 0; i < tree.iterations; i++) {
@@ -73,6 +155,21 @@
           productions: tree.productions
         });
       }
+      
+      // virtually render the tree so we can get its visual bounds and compute
+      // the center
+      ctx = new lsystem.MockContext();
+      $.extend(ctx, { xMax: 0, xMin: 0, yMax: 0, yMin: 0 });
+      ctx.lineTo = function(x,y) {
+        this.xMin = Math.min(this.xMin, x);
+        this.yMin = Math.min(this.yMin, y);
+        this.xMax = Math.max(this.xMax, x);
+        this.yMax = Math.max(this.yMax, y);
+      };
+      turtle = new lsystem.Turtle();
+      turtle.draw(ctx, tree.program);
+      tree.x = ctx.xMin + (0.5 * (ctx.xMax - ctx.xMin));
+      tree.y = ctx.yMin + (0.5 * (ctx.yMax - ctx.yMin));
       
       // set tree as only one in collection
       self.treeCollection.remove(self.treeCollection.models);
@@ -242,6 +339,7 @@
     render: function() {
       var self = this,
           turtle = new lsystem.Turtle(),
+          steps,
           ctx;
       
       ctx = self.el.getContext('2d');
@@ -250,16 +348,17 @@
             index = tree.index || 0;
         
         if (index < tree.program.length) {
+          steps = Math.round(tree.program.length / 166);
           ctx.save();
-          ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
+          ctx.translate((ctx.canvas.width / 2) + tree.x, (ctx.canvas.height / 2) + tree.y);
           ctx.rotate(Math.PI);
           turtle.set(tree.turtle || {});
-          turtle.draw(ctx, tree.program, index, index + 4);
+          turtle.draw(ctx, tree.program, index, index + steps);
           ctx.restore();
           
           model.set({
             turtle: turtle.toJSON(),
-            index: index + 4
+            index: index + steps
           });
         }
       });
@@ -329,26 +428,7 @@
         m.destroy();
       });
       this.seedCollection.remove(this.seedCollection.models);
-      this.seedCollection.add([
-            new SeedModel({
-                  name: 'Koch Island',
-                  description: 'From page 8 of "Algorithmic Beauty of Plants".',
-                  iterations: 2,
-                  program: 'F-F-F-F',
-                  productions: 'F -> F-F+F+FF-F-F+F',
-                  x: 'center',
-                  y: 'bottom'
-                }),
-            new SeedModel({
-                  name: 'Example 1.24',
-                  description: '',
-                  iterations: 4,
-                  program: 'F(3)',
-                  productions: 'F -> F(n)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)',
-                  x: 'center',
-                  y: 'bottom'
-                })
-          ]);
+      this.seedCollection.add(presets);
       this.seedCollection.each(function(model) {
         model.save();
       });

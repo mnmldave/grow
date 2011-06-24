@@ -146,16 +146,8 @@
     // ==========
     
     describe("Turtle", function() {
-      var MockContext = function() {
-        var self = this,
-            methods = ['translate', 'rotate', 'beginPath', 'moveTo', 'lineTo', 'stroke', 'save', 'restore'];
-        _.each(methods, function(m) {
-          self[m] = (function() {});
-        });
-      };
-
       it("should generate single path", function() {
-        var ctx = new MockContext(),
+        var ctx = new lsystem.MockContext(),
             turtle = new lsystem.Turtle().draw(ctx, 'F(10)');
 
         expect(Math.round(turtle.x)).toEqual(0);
@@ -163,7 +155,7 @@
       });
 
       it("should generate double path", function() {
-        var ctx = new MockContext(),
+        var ctx = new lsystem.MockContext(),
             turtle = new lsystem.Turtle();
             
         turtle.draw(ctx, 'F(7)F(8)', 0, 1);
