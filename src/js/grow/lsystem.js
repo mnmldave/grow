@@ -157,9 +157,9 @@
     'F': {
       execute: function(turtle, params, ctx) {
         ctx.beginPath();
-        ctx.moveTo(turtle.x, turtle.y);
+        ctx.moveTo(Math.round(turtle.x), Math.round(turtle.y));
         turtle.move(params.length > 0 ? params[0] : 5);
-        ctx.lineTo(turtle.x, turtle.y);
+        ctx.lineTo(Math.round(turtle.x), Math.round(turtle.y));
         ctx.stroke();
       }
     },

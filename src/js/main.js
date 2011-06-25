@@ -14,7 +14,6 @@
 
   var app = require('grow/app');
   new app.Controller();
-  require('backbone').history.start();
 
   $('.button').button();
   $('.fadeout').delay(2000).fadeOut(1000);

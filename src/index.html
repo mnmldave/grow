@@ -8,39 +8,55 @@
   <meta name="author" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Kreon:light,regular,bold">
-  <link rel="stylesheet" href="css/style.css?v=2">
   <link rel="stylesheet" href="css/jquery-ui.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=2">
   <script src="js/modernizr.js"></script>
 </head>
 <body>
   <div id="container" class="clearfix">
-    <header>
-      <h1 id="logo">grow.js</h1>
-    </header>
-
+    <nav id="toolbar">
+    </nav>
     <div id="main" role="main">
-      <section id="intro" class="fadeout">
-        <p>Click or tap anywhere...</p>
+      <section id="about" class="hidden">
+        <p>
+          I created this as a way to try out canvas drawing and various 
+          JavaScript libraries such as <a href="http://documentcloud.github.com/backbone/">Backbone.js</a>, 
+          <a href="https://github.com/jbrantly/yabble">Yabble</a>
+        </p>
       </section>
       
-      <section id="seed-collection-view" class="hidden">
+      <section id="seed-preset-view" class="hidden">
+        <p>
+          <em>grow.js</em> is a rudimentary JavaScript 
+          <a href="http://en.wikipedia.org/wiki/L-system" target="_blank">L-system</a>
+          implementation. The underlying theory, grammars and examples are from or based on the 
+          book, "<a href="http://algorithmicbotany.org/papers/#abop" target="_blank">The Algorithmic Beauty of Plants</a>"
+          by Przemyslaw Prusinkiewicz and Aristid Lindenmayer.
+        </p>
+        <hr>
+        <ul>
+          <li>
+            <ul id="seed-preset-list">
+            </ul>  
+          </li>
+        </ul>
+      </section>
+      
+      <section id="seed-editor-view" class="hidden">
         <form class="ui-form">
+          <div class="error"></div>
           <fieldset>
             <ul>
               <li>
-                <ul id="seed-preset-list">
-                </ul>  
+                <label for="seed-id" class="left">ID</label>
+                <div class="right">
+                  <input id="seed-id" name="id" type="text" class="text" disabled>
+                </div>
               </li>
-            </ul>
-          </fieldset>
-          <hr>
-          <fieldset>
-            <ul>
               <li>
                 <label for="seed-name" class="left">Name</label>
                 <div class="right">
                   <input id="seed-name" name="name" type="text" class="text">
-                  <a id="seed-save" class="button" href="#">Save</a>
                 </div>
               </li>
               <li>
@@ -48,12 +64,12 @@
                 <textarea id="seed-description" class="right" name="description" rows="2"></textarea>
               </li>
               <li>
-                <label for="seed-program" class="left">Axiom</label>
-                <input id="seed-program" class="right text" name="program" type="text" placeholder="">
+                <label for="seed-axiom" class="left">Axiom</label>
+                <input id="seed-axiom" class="right text" name="axiom" type="text" placeholder="">
               </li>
               <li>
-                <label for="seed-productions" class="left">Productions</label>
-                <textarea id="seed-productions" class="right" name="productions" rows="5"></textarea>
+                <label for="seed-productions" class="left">Rules</label>
+                <textarea id="seed-productions" class="right" name="productions" rows="3"></textarea>
               </li>
               <li>
                 <label for="seed-iterations" class="left">Iterations</label>

@@ -2,95 +2,63 @@
   var Backbone = require('backbone'),
       BackboneLocalStorage = require('backbone/localStorage'),
       lsystem = require('grow/lsystem'),
-      util = require('grow/util');
-  
-  var presets = [
-    {
-      name: '1.6 Koch Island',
-      description: 'From page 8 of "Algorithmic Beauty of Plants".',
-      iterations: 3,
-      program: 'F-F-F-F',
-      productions: 'F -> F-F+F+FF-F-F+F'
-    },
-    {
-      name: '1.7a Quadratic Koch Island',
-      description: 'From page 9 of "Algorithmic Beauty of Plants".',
-      iterations: 2,
-      program: 'F-F-F-F',
-      productions: 'F -> F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F'
-    },
-    {
-      name: '1.7b Quadratic Snowflake Curve',
-      description: 'From page 9 of "Algorithmic Beauty of Plants".',
-      iterations: 4,
-      program: '-F',
-      productions: 'F -> F+F-F-F+F'
-    },
-    {
-      name: '1.8 Combination of Islands and Lakes',
-      description: 'From page 9 of "Algorithmic Beauty of Plants".',
-      iterations: 2,
-      program: 'F+F+F+F',
-      productions: 'F -> F+f-FF+F+FF+Ff+FF-f+FF-F-FF-Ff-FFF\nf->ffffff'
-    },
-    {
-      name: '1.9a',
-      description: 'From page 10 of "Algorithmic Beauty of Plants".',
-      iterations: 4,
-      program: 'F-F-F-F',
-      productions: 'F -> FF-F-F-F-F-F+F'
-    },
-    {
-      name: '1.9b',
-      description: 'From page 10 of "Algorithmic Beauty of Plants".',
-      iterations: 4,
-      program: 'F-F-F-F',
-      productions: 'F -> FF-F-F-F-FF'
-    },
-    {
-      name: '1.9c',
-      description: 'From page 10 of "Algorithmic Beauty of Plants".',
-      iterations: 3,
-      program: 'F-F-F-F',
-      productions: 'F -> FF-F+F-F-FF'
-    },
-    {
-      name: '1.9d',
-      description: 'From page 10 of "Algorithmic Beauty of Plants".',
-      iterations: 4,
-      program: 'F-F-F-F',
-      productions: 'F -> FF-F--F-F'
-    },
-    {
-      name: '1.9e',
-      description: 'From page 10 of "Algorithmic Beauty of Plants".',
-      iterations: 5,
-      program: 'F-F-F-F',
-      productions: 'F -> F-FF--F-F'
-    },
-    {
-      name: '1.9f',
-      description: 'From page 10 of "Algorithmic Beauty of Plants".',
-      iterations: 4,
-      program: 'F-F-F-F',
-      productions: 'F -> F-F+F-F-F'
-    },
-    {
-      name: '1.24',
-      description: 'From',
-      iterations: 4,
-      program: 'F(3)',
-      productions: 'F -> F(n)[+(-25.7)F(n)]F(n)[+(25.7)F(n)]F(n)'
-    }
-  ];
+      util = require('grow/util'),
+      presets = require('grow/presets').presets;
   
   Backbone.sync = BackboneLocalStorage.sync;
   
   var SeedModel = Backbone.Model.extend({
+    initialize: function() {
+      var self = this;
+      
+      _.bindAll(self, 'validate', 'grow');
+    },
+    
     validate: function(attributes) {
       if (!attributes.name) {
-        return "A name is required.";
+        return { field: 'name', message: 'A name is required.' };
       }
+      
+      return false;
+    },
+    
+    /**
+     * Returns an object with a fully-generated `program`, compiled 
+     * `productions` and with its `x` and `y` attributes set to the midpoints
+     * of the visual rendering.
+     *
+     * This will take quite some time to run.
+     */
+    grow: function() {
+      var self = this,
+          tree = self.toJSON(),
+          ctx, xMin = 0, xMax = 0, yMin = 0, yMax = 0,
+          turtle;
+      
+      // generate the tree
+      tree.program = tree.axiom;
+      for (i = 0; i < tree.iterations; i++) {
+        tree.program = lsystem.generate({
+          program: tree.program,
+          productions: tree.productions
+        });
+      }
+      
+      // virtually render the tree so we can get its visual bounds and compute
+      // the center (if program is 'small')
+      ctx = new lsystem.MockContext();
+      ctx.lineTo = function(x,y) {
+        xMin = Math.min(xMin, x);
+        xMax = Math.max(xMax, x);
+        yMin = Math.min(yMin, y);
+        yMax = Math.max(yMax, y);
+      };
+      turtle = new lsystem.Turtle();
+      turtle.draw(ctx, tree.program);
+      tree.x = xMin + (0.5 * (xMax - xMin));
+      tree.y = yMin + (0.5 * (yMax - yMin));
+      
+      return tree;
     }
   });
   
@@ -101,136 +69,46 @@
   
   var TreeCollection = Backbone.Collection.extend({
     localStorage: new BackboneLocalStorage.Store('TreeCollection'),
-    model: Backbone.Model
+    model: Backbone.Model,
+    
+    initialize: function() {
+      var self = this;
+      
+      _.bindAll(self, 'plant');
+    },
+    
+    plant: function(tree) {
+      var self = this;
+      self.remove(self.models);
+      self.add(tree);
+      return self;
+    }
   });
   
-  var SeedCollectionView = Backbone.View.extend({
+  var SeedPresetView = Backbone.View.extend({
     initialize: function(options) {
-      _.bindAll(this, 'update', 'render', 'show', 'hide', 'plant', 'load', 'save', 'remove', 'error', 'seed');
-      this.treeCollection = options.treeCollection;
-      this.collection.bind('all', this.update);
-      this.dirty = false;
-    },
-    
-    seed: function() {
-      var self = this,
-          form = self.$('form'), 
-          seed = {};
+      var self = this;
       
-      // construct seed from values
-      form.find('input, textarea, select').each(function(i, el) {
-        var field = $(el),
-            name = field.attr('name');
-            
-        if (name) {
-          seed[name] = field.val();
-        }
-      });
-      
-      return seed;
-    },
-    
-    error: function(model, error) {
-      alert(error);
+      _.bindAll(self, 'render', 'update', 'show', 'hide', 'remove', 'load');
+      self.treeCollection = options.treeCollection;
+      self.collection.bind('all', self.update);
     },
     
     show: function() {
       $(this.el).dialog('open');
+      return this;
     },
     
     hide: function() {
       $(this.el).dialog('close');
+      return this;
     },
     
-    plant: function() {
-      var self = this,
-          tree = $.extend(true, {}, self.seed()),
-          ctx,
-          turtle;
+    load: function(model) {
+      var self = this;
       
-      // generate the tree
-      for (i = 0; i < tree.iterations; i++) {
-        tree.program = lsystem.generate({
-          program: tree.program,
-          productions: tree.productions
-        });
-      }
-      
-      // virtually render the tree so we can get its visual bounds and compute
-      // the center
-      ctx = new lsystem.MockContext();
-      $.extend(ctx, { xMax: 0, xMin: 0, yMax: 0, yMin: 0 });
-      ctx.lineTo = function(x,y) {
-        this.xMin = Math.min(this.xMin, x);
-        this.yMin = Math.min(this.yMin, y);
-        this.xMax = Math.max(this.xMax, x);
-        this.yMax = Math.max(this.yMax, y);
-      };
-      turtle = new lsystem.Turtle();
-      turtle.draw(ctx, tree.program);
-      tree.x = ctx.xMin + (0.5 * (ctx.xMax - ctx.xMin));
-      tree.y = ctx.yMin + (0.5 * (ctx.yMax - ctx.yMin));
-      
-      // set tree as only one in collection
-      self.treeCollection.remove(self.treeCollection.models);
-      self.treeCollection.add($.extend(true, {}, tree));
-      
-      $(this.el).dialog('close');
-    },
-    
-    load: function(seed) {
-      var self = this,
-          form = this.$('form'),
-          confirm,
-          load = function() {
-            _.each(seed.attributes, function(v, k) {
-              form.find('*[name="' + k + '"]').val(v);
-            });
-            self.dirty = false;
-          };
-      
-      if (self.dirty) {
-        $('<div><p>Are you sure you want to load this preset? Any changes you have made will be lost.</p></div>').dialog({
-          title: 'Load preset',
-          modal: true,
-          buttons: {
-            'Cancel': function() {
-              $(this).dialog('close');
-            },
-            'Load': function() {
-              load();
-              $(this).dialog('close');
-            }
-          }
-        });
-      } else {
-        load();
-      }
-    },
-    
-    save: function() {
-      var self = this,
-          seed = self.seed(),
-          model;
-      
-      // find or create model
-      model = self.collection.find(function(m) { return m.get('name') === seed.name; });
-      if (model) {
-        model.save(seed, {
-          error: function(m, e) {
-            alert(e);
-          },
-          success: function() {
-            self.dirty = false;
-          }
-        });
-      } else {
-        model = new SeedModel();
-        if (model.set(seed, { error: self.error })) {
-          self.collection.add(model);
-          model.save(seed, { error: self.error, success: function() { self.dirty = false; } });
-        }
-      }
+      self.treeCollection.plant(model.grow());
+      $(self.el).dialog('close');
     },
     
     remove: function(seed) {
@@ -259,25 +137,16 @@
       // update presets
       presets.children().remove();
       self.collection.each(function(seed) {
-        var load = $('<button type="button"></button>')
-                .text(seed.get('name'))
+        $('<li>')
+            .append($('<button type="button"></button>')
+                .text(seed.get('name') || '(Unnamed)')
                 .button()
                 .click(function() {
                   self.load(seed);
                   return false;
-                }),
-            remove = $('<button type="button">&nbsp;</button>')
-                .button({
-                  icons: {
-                    primary: 'ui-icon-close'
-                  },
-                  text: false
-                })
-                .click(function() {
-                  self.remove(seed);
-                  return false;
-                }),
-            li = $('<li>').append(load).append(remove).buttonset().appendTo(presets);
+                }))
+            .buttonset()
+            .appendTo(presets);
       });
       
       return self;
@@ -289,14 +158,108 @@
       
       $(self.el).dialog({
         autoOpen: false,
+        modal: true,
         show: 'fade',
         hide: 'fade',
-        title: 'Configure',
+        title: 'Seeds',
+        width: 640
+      }).removeClass('hidden');
+      
+      return self;
+    }
+  });
+  
+  // ==================
+  // = SeedEditorView =
+  // ==================
+  
+  var SeedEditorView = Backbone.View.extend({
+    initialize: function(options) {
+      var self = this;
+      _.bindAll(this, 'render', 'edit', 'close', 'finish', 'error', 'seed');
+    },
+    
+    seed: function() {
+      var self = this,
+          form = self.$('form'), 
+          seed = {};
+      
+      // construct seed from values
+      form.find('input, textarea, select').each(function(i, el) {
+        var field = $(el),
+            name = field.attr('name');
+            
+        if (name) {
+          seed[name] = field.val();
+        }
+      });
+      
+      return seed;
+    },
+    
+    error: function(model, error) {
+      alert(error);
+    },
+    
+    edit: function(model, success) {
+      var self = this;
+      
+      self.model = model;
+      _.each(model.attributes, function(value, key) {
+        self.$('*[name="' + key + '"]').val(value);
+      });
+      
+      $(this.el).dialog('open');
+      self.success = success;
+    },
+    
+    close: function() {
+      $(this.el).dialog('close');
+    },
+    
+    finish: function() {
+      var self = this,
+          seed = self.seed(),
+          model,
+          error;
+      
+      try {
+        self.model.set(seed, { error: function(model, e) { error = e; } });
+      } catch(e) {
+        error = e;
+      }
+      
+      if (error) {
+        $('<p>').text(error.message || error).dialog({
+          modal: true,
+          title: 'Error',
+          buttons: {
+            'Close': function() { 
+              $(this).dialog('close'); 
+              if (error.field) {
+                self.$('*[name="' + error.field + '"]').focus();
+              }
+            }
+          }
+        });
+      } else {
+        $(self.el).dialog('close');
+      }
+    },
+    
+    render: function() {
+      var self = this,
+          form = self.$('form');
+      
+      $(self.el).dialog({
+        autoOpen: false,
+        show: 'fade',
+        hide: 'fade',
+        title: 'Edit seed',
         width: 640,
-        height: 500,
         buttons: {
-          'Cancel': self.hide,
-          'Render': self.plant
+          'Cancel': self.close,
+          'Save': self.finish
         }
       }).removeClass('hidden');
       
@@ -305,16 +268,17 @@
         self.dirty = true;
       });
       
-      // bind save button
-      self.$('#seed-save').click(function() {
-        self.save();
-        return false;
-      });
-      
       return self;
     }
   });
   
+  // ======================
+  // = TreeCollectionView =
+  // ======================
+  
+  /**
+   * Renders all members of a TreeCollection in a canvas.
+   */
   var TreeCollectionView = Backbone.View.extend({
     initialize: function(options) {
       _.bindAll(this, 'render', 'resize', 'clear');
@@ -331,7 +295,7 @@
       self.collection.each(function(model) {
         model.set({ 
           index: 0,
-          tree: {}
+          turtle: {}
         });
       });
     },
@@ -350,7 +314,7 @@
         if (index < tree.program.length) {
           steps = Math.round(tree.program.length / 166);
           ctx.save();
-          ctx.translate((ctx.canvas.width / 2) + tree.x, (ctx.canvas.height / 2) + tree.y);
+          ctx.translate(Math.round((ctx.canvas.width / 2) + tree.x), Math.round((ctx.canvas.height / 2) + tree.y));
           ctx.rotate(Math.PI);
           turtle.set(tree.turtle || {});
           turtle.draw(ctx, tree.program, index, index + steps);
@@ -381,41 +345,121 @@
     
   });
   
-  var Controller = Backbone.Controller.extend({
-    routes: {
-      '': 'index',
-      'reset': 'reset'
-    },
-
+  // ===============
+  // = ToolbarView =
+  // ===============
+  
+  var ToolbarView = Backbone.View.extend({
     initialize: function(options) {
-      _.bindAll(this, 'loop', 'index', 'reset');
+      var self = this;
       
-      this.treeCollection = new TreeCollection();
-      this.treeCollection.fetch();
+      _.bindAll(self, 'update', 'render');
       
-      this.treeCollectionView = new TreeCollectionView({
-        el: document.getElementById('tree-collection-view'),
-        collection: this.treeCollection
+      self.seedPresetView = options.seedPresetView;
+      self.seedEditorView = options.seedEditorView;
+      
+      self.collection.bind('change:name', self.update);
+      self.collection.bind('add', self.update);
+      self.collection.bind('remove', self.update);
+    },
+    
+    update: function() {
+      var self = this;
+      
+      $(self.el).children().remove();
+      self.collection.each(function(model) {
+        var edit = $('<button>&nbsp;</button>')
+                .text(model.get('name') || '(Untitled)')
+                .button({
+                  icons: {
+                    secondary: 'ui-icon-wrench'
+                  }
+                })
+                .click(function() {
+                  var seedModel;
+            
+                  // create intermediate seed model
+                  seedModel = new SeedModel(model.toJSON());
+                  seedModel.bind('change', function() {
+                    self.collection.plant(seedModel.grow());
+                  });
+            
+                  self.seedEditorView.edit(seedModel);
+                }),
+            open = $('<button>&nbsp;</button>')
+                .button({
+                  text: false,
+                  icons: {
+                    primary: 'ui-icon-folder-open'
+                  }
+                })
+                .click(function() {
+                  self.seedPresetView.show();
+                })
+                .appendTo(container);
+        
+        $(self.el).append($('<div>').append(edit, open).buttonset());
       });
       
-      this.seedCollection = new SeedCollection();
-      this.seedCollection.fetch();
+      return self;
+    },
+    
+    render: function() {
+      var self = this;
+      return self;
+    }
+  });
+  
+  var Controller = Backbone.Controller.extend({
+    initialize: function(options) {
+      var self = this;
       
-      this.seedCollectionView = new SeedCollectionView({
-        el: document.getElementById('seed-collection-view'),
-        collection: this.seedCollection,
-        treeCollection: this.treeCollection
+      _.bindAll(this, 'loop', 'reset');
+      
+      // tree
+      self.treeCollection = new TreeCollection();
+      self.treeCollection.fetch();
+      
+      self.treeCollectionView = new TreeCollectionView({
+        el: document.getElementById('tree-collection-view'),
+        collection: self.treeCollection
+      });
+      
+      // seed
+      self.seedCollection = new SeedCollection();
+      self.seedCollection.fetch();
+      
+      self.seedPresetView = new SeedPresetView({
+        el: document.getElementById('seed-preset-view'),
+        collection: self.seedCollection,
+        treeCollection: self.treeCollection
       }).render().update();
       
-      // event bindings
-      $('#main').click(this.seedCollectionView.show);
+      self.seedEditorView = new SeedEditorView({
+        el: document.getElementById('seed-editor-view')
+      }).render();
       
+      // toolbar
+      self.toolbarView = new ToolbarView({
+        el: document.getElementById('toolbar'),
+        collection: self.treeCollection,
+        seedPresetView: self.seedPresetView,
+        seedEditorView: self.seedEditorView
+      }).render().update();
+            
       // reset if new
-      if (this.seedCollection.length === 0) {
-        this.reset();
+      if (self.seedCollection.length === 0) {
+        self.reset();
       }
       
-      requestAnimFrame(this.loop);
+      // plant initial tree
+      self.treeCollection.plant(self.seedCollection.at(0).grow());
+      
+      // show presets
+      self.seedPresetView.show();
+      
+      // start run loop
+      requestAnimFrame(self.loop);
     },
     
     loop: function() {
@@ -424,17 +468,16 @@
     },
     
     reset: function() {
-      this.seedCollection.each(function(m) {
-        m.destroy();
+      var self = this;
+      
+      self.treeCollection.remove(self.treeCollection.models);
+      self.seedCollection.remove(self.seedCollection.models);
+      localStorage.clear();
+      
+      _.each(presets, function(preset) {
+        var model = new SeedModel(preset);
+        self.seedCollection.add(model);
       });
-      this.seedCollection.remove(this.seedCollection.models);
-      this.seedCollection.add(presets);
-      this.seedCollection.each(function(model) {
-        model.save();
-      });
-    },
-    
-    index: function() {
     }
   });
   

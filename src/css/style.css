@@ -358,21 +358,15 @@ a:hover {
   font-weight: 300;
 }
 #container nav {
-  float: right;
+  float: left;
   position: absolute;
-  right: 20px;
+  left: 20px;
   top: 20px;
   z-index: 1000;
-  font: 14px/1.429 "Kreon", sans-serif;
 }
-#container nav ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-#container nav ul li {
-  float: left;
-  margin-left: 10px;
+#container nav .ui-button-text {
+  font-size: 11px;
+  margin-right: 5px;
 }
 #container #main {
   position: fixed;
@@ -417,61 +411,70 @@ a:hover {
   padding: 0 20px;
   float: right;
 }
-#seed-collection-view #seed-preset-list {
+#seed-preset-view a {
+  border-bottom: 1px dotted #ccc;
+}
+#seed-preset-view #seed-preset-list {
   list-style: none;
   zoom: 1;
+  margin: 0;
+  padding: 0;
 }
-#seed-collection-view #seed-preset-list:before, #seed-collection-view #seed-preset-list:after {
+#seed-preset-view #seed-preset-list:before, #seed-preset-view #seed-preset-list:after {
   content: "\0020";
   display: block;
   height: 0;
   overflow: hidden;
 }
-#seed-collection-view #seed-preset-list:after {
+#seed-preset-view #seed-preset-list:after {
   clear: both;
 }
-#seed-collection-view #seed-preset-list li {
+#seed-preset-view #seed-preset-list li {
   float: left;
+  margin: 5px;
 }
-#seed-collection-view form {
+#seed-preset-view #seed-preset-list li .ui-button-text {
+  font-size: 11px;
+}
+#seed-editor-view form {
   margin-top: 20px;
 }
-#seed-collection-view form fieldset legend span {
+#seed-editor-view form fieldset legend span {
   display: block;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
 }
-#seed-collection-view form fieldset ul {
+#seed-editor-view form fieldset ul {
   margin: 0;
   padding: 0;
 }
-#seed-collection-view form fieldset ul li {
+#seed-editor-view form fieldset ul li {
   margin-bottom: 10px;
   zoom: 1;
 }
-#seed-collection-view form fieldset ul li:before, #seed-collection-view form fieldset ul li:after {
+#seed-editor-view form fieldset ul li:before, #seed-editor-view form fieldset ul li:after {
   content: "\0020";
   display: block;
   height: 0;
   overflow: hidden;
 }
-#seed-collection-view form fieldset ul li:after {
+#seed-editor-view form fieldset ul li:after {
   clear: both;
 }
-#seed-collection-view form fieldset ul li .left {
+#seed-editor-view form fieldset ul li .left {
   width: 20%;
   float: left;
   max-width: 100px;
 }
-#seed-collection-view form fieldset ul li .right {
+#seed-editor-view form fieldset ul li .right {
   width: 76%;
   float: left;
   margin-left: 2%;
 }
-#seed-collection-view form fieldset ul li label {
+#seed-editor-view form fieldset ul li label {
   text-align: right;
 }
-#seed-collection-view form fieldset ul li .ui-autocomplete-input {
+#seed-editor-view form fieldset ul li .ui-autocomplete-input {
   -webkit-border-top-right-radius: 0;
   -webkit-border-bottom-right-radius: 0;
   -webkit-border-bottom-left-radius: 2px;
@@ -486,8 +489,11 @@ a:hover {
   border-top-left-radius: 2px;
   border-right: none;
 }
-#seed-collection-view form fieldset ul li .ui-button-text {
+#seed-editor-view form fieldset ul li .ui-button-text {
   font-size: 10px;
+}
+#seed-editor-view form fieldset ul li textarea {
+  resize: none;
 }
 .hidden, .fadein {
   display: none;
