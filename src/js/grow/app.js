@@ -138,17 +138,24 @@
           presets = this.$('#seed-preset-list');
       
       presets.children().remove();
-      self.collection.each(function(seed) {
-        $('<li>')
-            .append($('<button type="button"></button>')
-                .text(seed.get('name') || '(Unnamed)')
-                .button()
-                .click(function() {
-                  self.load(seed);
-                  return false;
-                }))
-            .buttonset()
-            .appendTo(presets);
+      _(tags).each(function(tag) {
+        var item = $('<li>').append($('<h3>').text(tag)).appendTo(presets),
+            list = $('<ul></ul>').appendTo(item);
+        
+        self.collection.each(function(seed) {
+          if (seed.get('tags').indexOf(tag) >= 0) {
+            $('<li>')
+                .append($('<button type="button"></button>')
+                    .text(seed.get('name') || '(Unnamed)')
+                    .button()
+                    .click(function() {
+                      self.load(seed);
+                      return false;
+                    }))
+                .buttonset()
+                .appendTo(list);
+          }
+        });
       });
       
       return self;
