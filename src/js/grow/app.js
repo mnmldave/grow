@@ -79,6 +79,7 @@
     
     plant: function(tree) {
       var self = this;
+      
       self.remove(self.models);
       self.add(tree);
       return self;
@@ -90,6 +91,7 @@
       var self = this;
       
       _.bindAll(self, 'render', 'update', 'show', 'hide', 'remove', 'load');
+      
       self.treeCollection = options.treeCollection;
       self.collection.bind('all', self.update);
     },
@@ -132,9 +134,9 @@
     
     update: function() {
       var self = this,
+          tags = self.collection.chain().map(function(model) { return model.get('tags'); }).flatten().uniq().value(),
           presets = this.$('#seed-preset-list');
       
-      // update presets
       presets.children().remove();
       self.collection.each(function(seed) {
         $('<li>')
@@ -154,7 +156,7 @@
     
     render: function() {
       var self = this,
-          form = self.$('form');
+          form = $('#seed-editor-form');
       
       $(self.el).dialog({
         autoOpen: false,
@@ -181,7 +183,7 @@
     
     seed: function() {
       var self = this,
-          form = self.$('form'), 
+          form = $('#seed-editor-form'), 
           seed = {};
       
       // construct seed from values
@@ -249,7 +251,7 @@
     
     render: function() {
       var self = this,
-          form = self.$('form');
+          form = $('#seed-editor-form');
       
       $(self.el).dialog({
         autoOpen: false,
@@ -370,11 +372,7 @@
       self.collection.each(function(model) {
         var edit = $('<button>&nbsp;</button>')
                 .text(model.get('name') || '(Untitled)')
-                .button({
-                  icons: {
-                    secondary: 'ui-icon-wrench'
-                  }
-                })
+                .button()
                 .click(function() {
                   var seedModel;
             
@@ -395,8 +393,7 @@
                 })
                 .click(function() {
                   self.seedPresetView.show();
-                })
-                .appendTo(container);
+                });
         
         $(self.el).append($('<div>').append(edit, open).buttonset());
       });
@@ -470,14 +467,10 @@
     reset: function() {
       var self = this;
       
-      self.treeCollection.remove(self.treeCollection.models);
-      self.seedCollection.remove(self.seedCollection.models);
+      self.treeCollection.remove(self.treeCollection.models, { silent: true });
+      self.seedCollection.remove(self.seedCollection.models, { silent: true });
       localStorage.clear();
-      
-      _.each(presets, function(preset) {
-        var model = new SeedModel(preset);
-        self.seedCollection.add(model);
-      });
+      self.seedCollection.add(presets);
     }
   });
   

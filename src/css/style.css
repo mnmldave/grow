@@ -357,16 +357,15 @@ a:hover {
 #container header h1 em {
   font-weight: 300;
 }
-#container nav {
+#container #toolbar {
   float: left;
   position: absolute;
   left: 20px;
   top: 20px;
   z-index: 1000;
 }
-#container nav .ui-button-text {
+#container #toolbar .ui-button-text {
   font-size: 11px;
-  margin-right: 5px;
 }
 #container #main {
   position: fixed;

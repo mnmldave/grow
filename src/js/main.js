@@ -13,7 +13,7 @@
       })();
 
   var app = require('grow/app');
-  new app.Controller();
+  window.controller = new app.Controller();
 
   $('.button').button();
   $('.fadeout').delay(2000).fadeOut(1000);
