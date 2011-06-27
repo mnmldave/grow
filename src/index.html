@@ -14,8 +14,9 @@
 </head>
 <body>
   <div id="container" class="clearfix">
-    <nav id="toolbar">
+    <nav id="tree-toolbar-view">
     </nav>
+    
     <div id="main" role="main">
       <section id="seed-preset-view" class="hidden">
         <p>
@@ -28,7 +29,7 @@
         </p>
         <hr>
         <ul id="seed-preset-list">
-        </ul>  
+        </ul> 
       </section>
       
       <section id="seed-editor-view" class="hidden">
@@ -36,7 +37,7 @@
           <div class="error"></div>
           <fieldset>
             <ul>
-              <li>
+              <li class="hidden">
                 <label for="seed-id" class="left">ID</label>
                 <div class="right">
                   <input id="seed-id" name="id" type="text" class="text" disabled>
@@ -52,6 +53,16 @@
                 <label for="seed-description" class="left">Description</label>
                 <textarea id="seed-description" class="right" name="description" rows="2"></textarea>
               </li>
+              <li>
+                <label for="seed-tags" class="left">Tags</label>
+                <div class="right">
+                  <input id="seed-tags" name="tags" type="text" class="text">
+                </div>
+              </li>
+            </ul>
+          </fieldset>
+          <fieldset>
+            <ul>
               <li>
                 <label for="seed-axiom" class="left">Axiom</label>
                 <input id="seed-axiom" class="right text" name="axiom" type="text" placeholder="">
@@ -71,12 +82,12 @@
         </form>
       </section>
       
-      <canvas id="tree-collection-view"></canvas>
+      <canvas id="tree-view"></canvas>
     </div>
 
     <footer class="clearfix">
       <p>
-        
+        Copyright &copy; 2011 Dave Heaton
       </p>
     </footer>
   </div>

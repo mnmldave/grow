@@ -145,22 +145,34 @@
    *   - `execute` (required) is a function that accepts a turtle, params, and
    *      canvas context as arguments and updates the turtle state and/or
    *      the context accordingly
+   *   - `description` (optional) a brief description of what the command does
+   *   - `params` (optional) an array of objects, each describing a parameter
+   *      - `alias` an alias for the parameter
+   *      - `description` a brief description of the parameter
    *
    * @param (Number) distance in units
    */
   Turtle.prototype.commands = {
     '[': {
+      description: 'Starts a branch.',
       execute: function(turtle, params, ctx) {
         turtle.save();
       }
     },
+    
     ']': {
+      description: 'Ends a branch.',
       execute: function(turtle, params, ctx) {
         turtle.restore();
         ctx.moveTo(turtle.x, turtle.y);
       }
     },
+    
     'F': {
+      description: 'Moves the turtle forward and draws a line.',
+      params: [ 
+        { alias: 'n', description: 'number of points to move (default: 10)' } 
+      ],
       execute: function(turtle, params, ctx) {
         ctx.beginPath();
         ctx.moveTo(Math.round(turtle.x), Math.round(turtle.y));
@@ -169,19 +181,34 @@
         ctx.stroke();
       }
     },
+    
     'f': {
+      description: 'Moves the turtle forward without drawing a line.',
+      params: [ 
+        { alias: 'n', description: 'number of points to move (default: 10)' } 
+      ],
       execute: function(turtle, params) {
         turtle.move(params.length > 0 ? params[0] : 5);
       }
     },
+    
     '+': {
-      execute: function(turtle, params) {
-        turtle.rotate((params.length > 0 ? params[0] : 90) * (Math.PI / 180));
-      }
-    },
-    '-': {
+      description: 'Turns the turtle right.',
+      params: [ 
+        { alias: 'n', description: 'number of degrees to turn (default: 90)' } 
+      ],
       execute: function(turtle, params) {
         turtle.rotate((params.length > 0 ? params[0] : 90) * (Math.PI / 180) * -1);
+      }
+    },
+    
+    '-': {
+      description: 'Turns the turtle left.',
+      params: [ 
+        { alias: 'n', description: 'number of degrees to turn (default: 90)' } 
+      ],
+      execute: function(turtle, params) {
+        turtle.rotate((params.length > 0 ? params[0] : 90) * (Math.PI / 180));
       }
     }
   };
@@ -400,15 +427,20 @@
   };
   
   // A mock canvas context object that can be used by a Turtle when you don't
-  // want to actually draw anything. Useful in tests and for simulating
-  // rendering to calculate visual bounds.
+  // want to actually draw anything. Don't use this please.
   var MockContext = function() {
     var self = this,
-        methods = ['translate', 'rotate', 'beginPath', 'moveTo', 'lineTo', 'stroke', 'save', 'restore'];
+        methods = [
+              'save', 'restore',
+              'scale', 'rotate', 'translate', 'transform', 'setTransform',
+              'clearRect', 'fillRect', 'strokeRect',
+              'beginPath', 'moveTo', 'closePath', 'lineTo', 'quadraticCurveTo', 'bezierCurveTo', 'arcTo', 'arc', 'rect', 'fill', 'stroke', 'clip'
+            ];
     _.each(methods, function(m) {
       self[m] = (function() {});
     });
   };
+  MockContext.prototype.__noSuchMethod__ = function() {};
   
   // ===========
   // = Exports =

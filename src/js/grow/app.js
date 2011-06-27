@@ -11,7 +11,7 @@
     initialize: function() {
       var self = this;
       
-      _.bindAll(self, 'validate', 'grow');
+      _.bindAll(self, 'validate');
     },
     
     validate: function(attributes) {
@@ -20,18 +20,24 @@
       }
       
       return false;
+    }
+  });
+  
+  var SeedCollection = Backbone.Collection.extend({
+    localStorage: new BackboneLocalStorage.Store('SeedCollection'),
+    model: SeedModel
+  });
+  
+  var TreeModel = Backbone.Model.extend({
+    initialize: function() {
+      var self = this;
+      
+      _.bindAll(self, 'grow');
     },
     
-    /**
-     * Returns an object with a fully-generated `program`, compiled 
-     * `productions` and with its `x` and `y` attributes set to the midpoints
-     * of the visual rendering.
-     *
-     * This will take quite some time to run.
-     */
-    grow: function() {
+    grow: function(seed) {
       var self = this,
-          tree = self.toJSON(),
+          tree = seed.toJSON(),
           ctx, xMin = 0, xMax = 0, yMin = 0, yMax = 0,
           turtle;
       
@@ -59,31 +65,7 @@
       tree.x = xMin + (0.5 * (xMax - xMin));
       tree.y = yMin + (0.5 * (yMax - yMin));
       
-      return tree;
-    }
-  });
-  
-  var SeedCollection = Backbone.Collection.extend({
-    localStorage: new BackboneLocalStorage.Store('SeedCollection'),
-    model: SeedModel
-  });
-  
-  var TreeCollection = Backbone.Collection.extend({
-    localStorage: new BackboneLocalStorage.Store('TreeCollection'),
-    model: Backbone.Model,
-    
-    initialize: function() {
-      var self = this;
-      
-      _.bindAll(self, 'plant');
-    },
-    
-    plant: function(tree) {
-      var self = this;
-      
-      self.remove(self.models);
-      self.add(tree);
-      return self;
+      self.set(tree);
     }
   });
   
@@ -91,9 +73,9 @@
     initialize: function(options) {
       var self = this;
       
-      _.bindAll(self, 'render', 'update', 'show', 'hide', 'remove', 'load');
+      _.bindAll(self, 'render', 'update', 'show', 'hide', 'remove', 'grow');
       
-      self.treeCollection = options.treeCollection;
+      self.treeModel = options.treeModel;
       self.collection.bind('all', self.update);
     },
     
@@ -107,17 +89,17 @@
       return this;
     },
     
-    load: function(model) {
+    grow: function(model) {
       var self = this;
       
-      self.treeCollection.plant(model.grow());
+      self.treeModel.grow(model);
       $(self.el).dialog('close');
     },
     
-    remove: function(seed) {
+    remove: function(model) {
       var self = this;
       
-      $('<div><p>Are you sure you want to delete this preset?</p></div>').dialog({
+      $('<div><p>Are you sure you want to remove the preset "' + model.get('name') + '"?</p></div>').dialog({
         title: 'Delete preset?',
         modal: true,
         buttons: {
@@ -125,8 +107,8 @@
             $(this).dialog('close');
           },
           'Delete': function() {
-            seed.destroy();
-            self.collection.remove(seed);
+            model.destroy();
+            self.collection.remove(model);
             $(this).dialog('close');
           }
         }
@@ -143,14 +125,23 @@
         var item = $('<li>').append($('<h3>').text(tag)).appendTo(presets),
             list = $('<ul></ul>').appendTo(item);
         
-        self.collection.each(function(seed) {
-          if (seed.get('tags').indexOf(tag) >= 0) {
+        self.collection.each(function(model) {
+          if (model.get('tags').indexOf(tag) >= 0) {
             $('<li>')
                 .append($('<button type="button"></button>')
-                    .text(seed.get('name') || '(Unnamed)')
+                    .text(model.get('name') || '(Unnamed)')
                     .button()
                     .click(function() {
-                      self.load(seed);
+                      self.grow(model);
+                      return false;
+                    }))
+                .append($('<button type="button">&nbsp;</button>')
+                    .button({
+                      text: false,
+                      icons: { primary: 'ui-icon-close' }
+                    })
+                    .click(function() {
+                      self.remove(model);
                       return false;
                     }))
                 .buttonset()
@@ -191,18 +182,22 @@
     
     seed: function() {
       var self = this,
-          form = $('#seed-editor-form'), 
-          seed = {};
+          form = $('#seed-editor-form'),
+          seed;
       
       // construct seed from values
-      form.find('input, textarea, select').each(function(i, el) {
-        var field = $(el),
-            name = field.attr('name');
-            
-        if (name) {
-          seed[name] = field.val();
-        }
-      });
+      seed = {
+        name: self.$('#seed-name').val(),
+        description: self.$('#seed-description').val(),
+        tags: _(self.$('#seed-tags').val().split(','))
+            .chain()
+            .map(function(t) { return $.trim(t); })
+            .compact()
+            .value(),
+        axiom: self.$('#seed-axiom').val(),
+        productions: self.$('#seed-productions').val(),
+        iterations: parseInt(self.$('#seed-iterations').val(), 10)
+      };
       
       return seed;
     },
@@ -212,12 +207,17 @@
     },
     
     edit: function(model, success) {
-      var self = this;
-      
+      var self = this,
+          seed = model.attributes;
+
       self.model = model;
-      _.each(model.attributes, function(value, key) {
-        self.$('*[name="' + key + '"]').val(value);
-      });
+      self.$('#seed-id').val(model.id);
+      self.$('#seed-name').val(seed.name);
+      self.$('#seed-description').val(seed.description);
+      self.$('#seed-tags').val((seed.tags || []).join(', '));
+      self.$('#seed-axiom').val(seed.axiom);
+      self.$('#seed-productions').val(seed.productions);
+      self.$('#seed-iterations').val(seed.iterations);
       
       $(this.el).dialog('open');
       self.success = success;
@@ -282,18 +282,14 @@
     }
   });
   
-  // ======================
-  // = TreeCollectionView =
-  // ======================
+  // ============
+  // = TreeView =
+  // ============
   
-  /**
-   * Renders all members of a TreeCollection in a canvas.
-   */
-  var TreeCollectionView = Backbone.View.extend({
+  var TreeView = Backbone.View.extend({
     initialize: function(options) {
       _.bindAll(this, 'render', 'resize', 'clear');
-      this.collection.bind('add', this.clear);
-      this.collection.bind('remove', this.clear);
+      this.model.bind('change:program', this.clear);
       $(window).resize(this.resize).resize();
     },
     
@@ -302,59 +298,51 @@
           ctx = self.el.getContext('2d');
 
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      self.collection.each(function(model) {
-        model.set({ 
-          index: 0,
-          turtle: {}
-        });
+      self.model.set({ 
+        index: 0,
+        turtle: {}
       });
     },
     
     render: function() {
       var self = this,
           turtle = new lsystem.Turtle(),
-          ctx;
+          model = self.model,
+          ctx,
+          tree = model.toJSON(),
+          index = tree.index || 0,
+          steps,
+          scaleX = 1, scaleY = 1, scale = 1;
       
       ctx = self.el.getContext('2d');
-      self.collection.each(function(model) {
-        var tree = model.toJSON(),
-            index = tree.index || 0,
-            steps,
-            scaleX = 1, scaleY = 1, scale = 1;
+      if (index < tree.program.length) {
+        // compute number of steps to draw per frame to draw entire thing in 
+        // 8s, assuming 60fps ((1000/60) * s)
+        steps = Math.round(tree.program.length / 133);
         
-        if (index < tree.program.length) {
-          steps = Math.round(tree.program.length / 166);
-          
-          // shift, scale and rotate canvas so turtle is drawn in centre,
-          // pointing upwards, and so that everything fits in the canvas
-          ctx.save();
-          if (tree.width > ctx.canvas.width) {
-            scaleX = ctx.canvas.width / tree.width;
-          }
-          if (tree.height > ctx.canvas.height) {
-            scaleY = ctx.canvas.height / tree.height;
-          }
-          if (scaleX < 1 || scaleY < 1) {
-            scale = scaleX < scaleY ? scaleX : scaleY;
-          } else {
-            scale = 1;
-          }
-          ctx.translate(Math.round((ctx.canvas.width/2) + (tree.x * scale)), Math.round((ctx.canvas.height/2) + (tree.y * scale)));
-          ctx.scale(scale, scale);
-          ctx.rotate(Math.PI);
-          
-          // draw turtle
-          turtle.set(tree.turtle || {});
-          turtle.draw(ctx, tree.program, index, index + steps);
-          ctx.restore();
-          
-          // store turtle state in our tree model
-          model.set({
-            turtle: turtle.toJSON(),
-            index: index + steps
-          });
-        }
-      });
+        // shift, scale and rotate canvas so turtle is drawn in centre,
+        // pointing upwards, and with everything inside the canvas
+        scaleX = ctx.canvas.width / (tree.width || 1);
+        scaleY = ctx.canvas.height / (tree.height || 1);
+        scale = scaleX < scaleY ? scaleX : scaleY;
+        scale = scale < 1 ? scale : 1;
+
+        ctx.save();
+        ctx.translate(Math.round((ctx.canvas.width/2) + (tree.x * scale)), Math.round((ctx.canvas.height/2) + (tree.y * scale)));
+        ctx.scale(scale, scale);
+        ctx.rotate(Math.PI);
+        
+        // draw turtle draw!
+        turtle.set(tree.turtle || {});
+        turtle.draw(ctx, tree.program, index, index + steps);
+        ctx.restore();
+        
+        // save turtle state to tree model
+        model.set({
+          turtle: turtle.toJSON(),
+          index: index + steps
+        });
+      }
     },
     
     resize: function(e) {
@@ -376,11 +364,11 @@
     
   });
   
-  // ===============
-  // = ToolbarView =
-  // ===============
+  // ===================
+  // = TreeToolbarView =
+  // ===================
   
-  var ToolbarView = Backbone.View.extend({
+  var TreeToolbarView = Backbone.View.extend({
     initialize: function(options) {
       var self = this;
       
@@ -389,43 +377,36 @@
       self.seedPresetView = options.seedPresetView;
       self.seedEditorView = options.seedEditorView;
       
-      self.collection.bind('change:name', self.update);
-      self.collection.bind('add', self.update);
-      self.collection.bind('remove', self.update);
+      self.model.bind('change:name', self.update);
     },
     
     update: function() {
-      var self = this;
+      var self = this,
+          model = self.model,
+          buttons = $('<div>');
       
+      buttons.append($('<button>&nbsp;</button>')
+          .text(model.get('name') || '(Untitled)')
+          .attr('title', 'Edit tree options.')
+          .button()
+          .click(function() {
+            self.seedEditorView.edit(model);
+          }));
+      buttons.append($('<button>&nbsp;</button>')
+          .attr('title', 'Load a tree.')
+          .button({
+            text: false,
+            icons: {
+              primary: 'ui-icon-folder-open'
+            }
+          })
+          .click(function() {
+            self.seedPresetView.show();
+          }));
+      buttons.buttonset();
+
       $(self.el).children().remove();
-      self.collection.each(function(model) {
-        var edit = $('<button>&nbsp;</button>')
-                .text(model.get('name') || '(Untitled)')
-                .button()
-                .click(function() {
-                  var seedModel;
-            
-                  // create intermediate seed model
-                  seedModel = new SeedModel(model.toJSON());
-                  seedModel.bind('change', function() {
-                    self.collection.plant(seedModel.grow());
-                  });
-            
-                  self.seedEditorView.edit(seedModel);
-                }),
-            open = $('<button>&nbsp;</button>')
-                .button({
-                  text: false,
-                  icons: {
-                    primary: 'ui-icon-folder-open'
-                  }
-                })
-                .click(function() {
-                  self.seedPresetView.show();
-                });
-        
-        $(self.el).append($('<div>').append(edit, open).buttonset());
-      });
+      $(self.el).append(buttons);
       
       return self;
     },
@@ -442,44 +423,40 @@
       
       _.bindAll(this, 'loop', 'reset');
       
-      // tree
-      self.treeCollection = new TreeCollection();
-      self.treeCollection.fetch();
-      
-      self.treeCollectionView = new TreeCollectionView({
-        el: document.getElementById('tree-collection-view'),
-        collection: self.treeCollection
+      // tree model and view
+      self.treeModel = new TreeModel();
+      self.treeView = new TreeView({
+        el: document.getElementById('tree-view'),
+        model: self.treeModel
       });
       
-      // seed
+      // seed collection and views
       self.seedCollection = new SeedCollection();
       self.seedCollection.fetch();
-      
       self.seedPresetView = new SeedPresetView({
         el: document.getElementById('seed-preset-view'),
         collection: self.seedCollection,
-        treeCollection: self.treeCollection
+        treeModel: self.treeModel
       }).render().update();
-      
       self.seedEditorView = new SeedEditorView({
         el: document.getElementById('seed-editor-view')
       }).render();
       
-      // toolbar
-      self.toolbarView = new ToolbarView({
-        el: document.getElementById('toolbar'),
-        collection: self.treeCollection,
+      // tree toolbar
+      self.treeToolbarView = new TreeToolbarView({
+        el: document.getElementById('tree-toolbar-view'),
+        model: self.treeModel,
         seedPresetView: self.seedPresetView,
         seedEditorView: self.seedEditorView
       }).render().update();
             
-      // reset if new
+      // reset if no seeds
       if (self.seedCollection.length === 0) {
         self.reset();
       }
       
       // plant initial tree
-      self.treeCollection.plant(self.seedCollection.at(0).grow());
+      self.treeModel.grow(self.seedCollection.at(0));
       
       // show presets
       self.seedPresetView.show();
@@ -490,16 +467,17 @@
     
     loop: function() {
       requestAnimFrame(this.loop);
-      this.treeCollectionView.render();
+      this.treeView.render();
     },
     
     reset: function() {
       var self = this;
       
-      self.treeCollection.remove(self.treeCollection.models, { silent: true });
+      // clear and create seeds
       self.seedCollection.remove(self.seedCollection.models, { silent: true });
       localStorage.clear();
-      self.seedCollection.add(presets);
+      self.seedCollection.add(presets, { silent: true });
+      self.seedCollection.trigger('refresh');
     }
   });
   

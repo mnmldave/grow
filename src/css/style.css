@@ -357,16 +357,6 @@ a:hover {
 #container header h1 em {
   font-weight: 300;
 }
-#container #toolbar {
-  float: left;
-  position: absolute;
-  left: 20px;
-  top: 20px;
-  z-index: 1000;
-}
-#container #toolbar .ui-button-text {
-  font-size: 11px;
-}
 #container #main {
   position: fixed;
   overflow: hidden;
@@ -374,21 +364,6 @@ a:hover {
   left: 0;
   width: 100%;
   height: 100%;
-}
-#container #main #intro {
-  position: fixed;
-  height: 40px;
-  width: 100%;
-  top: 50%;
-  margin-top: -20px;
-  text-align: center;
-  font: 18px/1.111 "Kreon", sans-serif;
-}
-#container #main #tree-view {
-  background: #fff;
-  width: 100%;
-  height: 100%;
-  margin: 0;
 }
 #container footer {
   position: absolute;
@@ -410,75 +385,113 @@ a:hover {
   padding: 0 20px;
   float: right;
 }
+#tree-toolbar-view {
+  float: left;
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  z-index: 1000;
+  -moz-transition-duration: 0.2s;
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+  opacity: 0.4;
+}
+#tree-toolbar-view:hover {
+  opacity: 1.0;
+}
+#tree-toolbar-view .ui-button {
+  cursor: hand;
+}
+#tree-toolbar-view .ui-button-text {
+  font-size: 11px;
+}
+#tree-collection-view {
+  background: #fff;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
 #seed-preset-view a {
   border-bottom: 1px dotted #ccc;
 }
-#seed-preset-view #seed-preset-list {
+#seed-preset-view #seed-preset-list, #seed-preset-view #seed-preset-actions {
   list-style: none;
   zoom: 1;
   margin: 0;
   padding: 0;
 }
-#seed-preset-view #seed-preset-list:before, #seed-preset-view #seed-preset-list:after {
+#seed-preset-view #seed-preset-list:before,
+#seed-preset-view #seed-preset-actions:before,
+#seed-preset-view #seed-preset-list:after,
+#seed-preset-view #seed-preset-actions:after {
   content: "\0020";
   display: block;
   height: 0;
   overflow: hidden;
 }
-#seed-preset-view #seed-preset-list:after {
+#seed-preset-view #seed-preset-list:after, #seed-preset-view #seed-preset-actions:after {
   clear: both;
 }
-#seed-preset-view #seed-preset-list ul {
+#seed-preset-view #seed-preset-list ul, #seed-preset-view #seed-preset-actions ul {
   list-style: none;
   margin: 0;
 }
-#seed-preset-view #seed-preset-list li {
+#seed-preset-view #seed-preset-list li, #seed-preset-view #seed-preset-actions li {
   float: left;
   margin: 5px;
 }
-#seed-preset-view #seed-preset-list li .ui-button-text {
+#seed-preset-view #seed-preset-list li .ui-button-text, #seed-preset-view #seed-preset-actions li .ui-button-text {
   font-size: 11px;
 }
-#seed-editor-view form {
+#seed-editor-view #seed-editor-form {
   margin-top: 20px;
 }
-#seed-editor-view form fieldset legend span {
+#seed-editor-view #seed-editor-form fieldset {
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+#seed-editor-view #seed-editor-form fieldset:last-child {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+#seed-editor-view #seed-editor-form fieldset legend span {
   display: block;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
 }
-#seed-editor-view form fieldset ul {
+#seed-editor-view #seed-editor-form fieldset ul {
   margin: 0;
   padding: 0;
 }
-#seed-editor-view form fieldset ul li {
+#seed-editor-view #seed-editor-form fieldset ul li {
   list-style: none;
   margin-bottom: 10px;
   zoom: 1;
 }
-#seed-editor-view form fieldset ul li:before, #seed-editor-view form fieldset ul li:after {
+#seed-editor-view #seed-editor-form fieldset ul li:before, #seed-editor-view #seed-editor-form fieldset ul li:after {
   content: "\0020";
   display: block;
   height: 0;
   overflow: hidden;
 }
-#seed-editor-view form fieldset ul li:after {
+#seed-editor-view #seed-editor-form fieldset ul li:after {
   clear: both;
 }
-#seed-editor-view form fieldset ul li .left {
+#seed-editor-view #seed-editor-form fieldset ul li .left {
   width: 20%;
   float: left;
   max-width: 100px;
 }
-#seed-editor-view form fieldset ul li .right {
+#seed-editor-view #seed-editor-form fieldset ul li .right {
   width: 76%;
   float: left;
   margin-left: 2%;
 }
-#seed-editor-view form fieldset ul li label {
+#seed-editor-view #seed-editor-form fieldset ul li label {
   text-align: right;
 }
-#seed-editor-view form fieldset ul li .ui-autocomplete-input {
+#seed-editor-view #seed-editor-form fieldset ul li .ui-autocomplete-input {
   -webkit-border-top-right-radius: 0;
   -webkit-border-bottom-right-radius: 0;
   -webkit-border-bottom-left-radius: 2px;
@@ -493,10 +506,10 @@ a:hover {
   border-top-left-radius: 2px;
   border-right: none;
 }
-#seed-editor-view form fieldset ul li .ui-button-text {
+#seed-editor-view #seed-editor-form fieldset ul li .ui-button-text {
   font-size: 10px;
 }
-#seed-editor-view form fieldset ul li textarea {
+#seed-editor-view #seed-editor-form fieldset ul li textarea {
   resize: none;
 }
 .hidden, .fadein {
