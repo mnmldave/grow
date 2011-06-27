@@ -2,7 +2,7 @@
  * PEG based on lsystem grammar outlined in "The Algorithmic Beauty of Plants"
  * by Przemyslaw Prusinkiewicz and Aristid Lindenmayer.
  *
- * By Dave Heaton <dave@bit155.com>
+ * by Dave Heaton <dave@bit155.com>
  */
 
 start

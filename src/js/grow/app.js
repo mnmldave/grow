@@ -44,17 +44,18 @@
         });
       }
       
-      // virtually render the tree so we can get its visual bounds and compute
-      // the center (if program is 'small')
+      // virtually render the tree so we can calculate width/height
       ctx = new lsystem.MockContext();
       ctx.lineTo = function(x,y) {
-        xMin = Math.min(xMin, x);
-        xMax = Math.max(xMax, x);
-        yMin = Math.min(yMin, y);
-        yMax = Math.max(yMax, y);
+        xMin = x < xMin ? x : xMin;
+        xMax = x > xMax ? x : xMax;
+        yMin = y < yMin ? y : yMin;
+        yMax = y > yMax ? y : yMax;
       };
       turtle = new lsystem.Turtle();
       turtle.draw(ctx, tree.program);
+      tree.width = xMax - xMin;
+      tree.height = yMax - yMin;
       tree.x = xMin + (0.5 * (xMax - xMin));
       tree.y = yMin + (0.5 * (yMax - yMin));
       
@@ -312,23 +313,42 @@
     render: function() {
       var self = this,
           turtle = new lsystem.Turtle(),
-          steps,
           ctx;
       
       ctx = self.el.getContext('2d');
       self.collection.each(function(model) {
         var tree = model.toJSON(),
-            index = tree.index || 0;
+            index = tree.index || 0,
+            steps,
+            scaleX = 1, scaleY = 1, scale = 1;
         
         if (index < tree.program.length) {
           steps = Math.round(tree.program.length / 166);
+          
+          // shift, scale and rotate canvas so turtle is drawn in centre,
+          // pointing upwards, and so that everything fits in the canvas
           ctx.save();
-          ctx.translate(Math.round((ctx.canvas.width / 2) + tree.x), Math.round((ctx.canvas.height / 2) + tree.y));
+          if (tree.width > ctx.canvas.width) {
+            scaleX = ctx.canvas.width / tree.width;
+          }
+          if (tree.height > ctx.canvas.height) {
+            scaleY = ctx.canvas.height / tree.height;
+          }
+          if (scaleX < 1 || scaleY < 1) {
+            scale = scaleX < scaleY ? scaleX : scaleY;
+          } else {
+            scale = 1;
+          }
+          ctx.translate(Math.round((ctx.canvas.width/2) + (tree.x * scale)), Math.round((ctx.canvas.height/2) + (tree.y * scale)));
+          ctx.scale(scale, scale);
           ctx.rotate(Math.PI);
+          
+          // draw turtle
           turtle.set(tree.turtle || {});
           turtle.draw(ctx, tree.program, index, index + steps);
           ctx.restore();
           
+          // store turtle state in our tree model
           model.set({
             turtle: turtle.toJSON(),
             index: index + steps
@@ -346,9 +366,11 @@
       
       self.resizeTimer = setTimeout(function() {
         var ctx = self.el.getContext('2d');
-        ctx.canvas.width = window.innerWidth;
-        ctx.canvas.height = window.innerHeight;
-        self.clear();
+        if (ctx.canvas.width != window.innerWidth || ctx.canvas.height != window.innerHeight) {
+          ctx.canvas.width = window.innerWidth;
+          ctx.canvas.height = window.innerHeight;
+          self.clear();
+        }
       }, 100);
     }
     

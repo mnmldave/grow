@@ -22,6 +22,9 @@
   Turtle.prototype.color = '#888';
   Turtle.prototype.width = 1;
   
+  /**
+   * Returns some turtle properties as a JSON-friendly object.
+   */
   Turtle.prototype.toJSON = function() {
     var self = this;
     return {
@@ -34,6 +37,9 @@
     };
   };
   
+  /**
+   * Sets properties of the turtle from the given object.
+   */
   Turtle.prototype.set = function(opts) {
     var self = this,
         attr = $.extend(true, {
@@ -185,14 +191,15 @@
   // ============
   
   /**
-   * Generates the next iteration of a program.
+   * Generates the next iteration of a program by applying rewrite rules
+   * (productions) to a program.
    *
    * @param (String|Array) program a turtle program to evolve (eg. 'F' or the 
    *        result of parseProgram)
    * @param (String|Array) productions a set of production statements (eg. 
    *        'F->FF' or the result of parseProductions)
    *
-   * @returns a processed program object model
+   * @returns the new rewritten program
    */
   var generate = function(options) {
     var productions = toProductionIndex(options.productions), 
@@ -223,6 +230,8 @@
   // = Utils =
   // =========
 
+  // Parses a program string and returns the array representing that program's
+  // modules.
   var parseProgram = function(str) {
     var tree = parser.parse(str);
     
@@ -233,6 +242,8 @@
     return tree.elements;
   };
   
+  // Parses a productions string and returns an array containing production
+  // rules.
   var parseProductions = function(str) {
     var tree = parser.parse(str);
     
@@ -243,6 +254,8 @@
     return tree.elements;
   };
   
+  // Returns the parsed version of a program. If the input is already parsed,
+  // just returns it verbatim.
   var toProgram = function(program) {
     if (typeof program === 'string') {
       program = parseProgram(program);
@@ -250,6 +263,7 @@
     return program;
   };
   
+  // Returns an index of productions, keyed by command.
   var toProductionIndex = function(productions) {
     var result = {}, i, prod, vars;
     
@@ -285,6 +299,9 @@
     return result;
   };
   
+  // Returns eval'able javascript containing a function which, when called
+  // with the parameters of a module, will return an array of replacement 
+  // modules.
   var formatSuccessorAsJavaScript = function(successor) {
     var variables = [], script = [], module, i, j;
     
@@ -315,6 +332,9 @@
     return '(function(' + variables.join(',') + ') { return ' + script.join('') + '; })';
   };
   
+  // Returns eval'able javascript that evaluates some expression (such as
+  // "a+2" or "a||b" or "x>y"). Records all unbound variables in the given 
+  // variables array.
   var formatExpressionAsJavaScript = function(expression, variables) {
     if (typeof variables === 'undefined') {
       variables = [];
@@ -343,6 +363,7 @@
     })(expression, variables, []).join('');
   };
   
+  // Returns a production that applies to some module.
   var findProduction = function(productions, module) {
     var i, nodes, node;
     
@@ -378,6 +399,9 @@
     return false;
   };
   
+  // A mock canvas context object that can be used by a Turtle when you don't
+  // want to actually draw anything. Useful in tests and for simulating
+  // rendering to calculate visual bounds.
   var MockContext = function() {
     var self = this,
         methods = ['translate', 'rotate', 'beginPath', 'moveTo', 'lineTo', 'stroke', 'save', 'restore'];

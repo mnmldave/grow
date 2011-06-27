@@ -452,6 +452,7 @@ a:hover {
   padding: 0;
 }
 #seed-editor-view form fieldset ul li {
+  list-style: none;
   margin-bottom: 10px;
   zoom: 1;
 }

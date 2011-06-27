@@ -4,7 +4,9 @@ SRC_PATH = File.join(BASE_PATH, 'src')
 SERVER_HOST = '0.0.0.0'
 SERVER_PORT = 3000
 
-namespace :build do
+DEPLOY_SERVER = ENV['DEPLOY_SERVER']
+
+namespace :compile do
   desc 'compiles peg files and rewrites to be CommonJS friendly'
   task :peg do
     Dir.glob(File.join(SRC_PATH, '**', '*.pegjs')).each do |input_path|
@@ -39,3 +41,19 @@ task :server do
   Rack::Handler::Thin.run(app, { :Host => SERVER_HOST, :Port => SERVER_PORT })
 end
   
+desc 'Deploys to the remote server'
+task :deploy do
+  raise "Please specify a DEPLOY_SERVER env var." unless DEPLOY_SERVER
+  
+  chdir(BUILD_PATH) do
+    args = []
+    args << "rsync"
+    args << "-avz"
+    args << "--stats"
+    args << "--progress"
+    args << "--delete"
+    args << "."
+    args << DEPLOY_SERVER
+    system(*args)
+  end
+end
