@@ -147,15 +147,22 @@ a:hover { color: @color-link; }
     font-size: 10px;
     line-height: 2;
     
-    #status {
-      padding: 0 20px;
-      float: left;
-    }
-    
-    #copyright {
-      opacity: 0.4;
+    p {
+      color: fadeout(@color-text, 50%);
       padding: 0 20px;
       float: right;
+      .transition-duration();
+      
+      &:hover {
+        color: @color-text;
+        a {
+          text-decoration: underline;
+        }
+      }
+      
+      a {
+        color: inherit;
+      }
     }
   }
 }

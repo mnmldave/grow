@@ -7,6 +7,9 @@
   
   Backbone.sync = BackboneLocalStorage.sync;
   
+  // Encapsulates a "seed" which is essentially just the axiom, productions,
+  // and number of iterations. Also contains meta data like name, description
+  // and tags array.
   var SeedModel = Backbone.Model.extend({
     initialize: function() {
       var self = this;
@@ -23,11 +26,18 @@
     }
   });
   
+  // Collection of SeedModels.
   var SeedCollection = Backbone.Collection.extend({
     localStorage: new BackboneLocalStorage.Store('SeedCollection'),
     model: SeedModel
   });
   
+  // Encapsulates the data needed to render a "tree", which is just a 
+  // compiled and rewritten seed. The essential data is the program, which is
+  // an array of module objects each containing a 'c' command and 'p' 
+  // parameters to be interpreted by an lsystem.Turtle() instance for drawing.
+  // You can easily convert a seed into a tree with the included "grow" method
+  // which will set the tree data by compiling a seed.
   var TreeModel = Backbone.Model.extend({
     initialize: function() {
       var self = this;
@@ -35,16 +45,17 @@
       _.bindAll(self, 'grow');
     },
     
-    grow: function(seed) {
+    grow: function(model) {
       var self = this,
-          tree = seed.toJSON(),
+          tree = model.toJSON(),
           ctx, xMin = 0, xMax = 0, yMin = 0, yMax = 0,
           turtle;
       
       // generate the tree
+      tree.seed = model.id || model.cid;
       tree.program = tree.axiom;
       for (i = 0; i < tree.iterations; i++) {
-        tree.program = lsystem.generate({
+        tree.program = lsystem.rewrite({
           program: tree.program,
           productions: tree.productions
         });
@@ -75,7 +86,6 @@
       
       _.bindAll(self, 'render', 'update', 'show', 'hide', 'remove', 'grow');
       
-      self.treeModel = options.treeModel;
       self.collection.bind('all', self.update);
     },
     
@@ -89,17 +99,15 @@
       return this;
     },
     
-    grow: function(model) {
-      var self = this;
-      
-      self.treeModel.grow(model);
-      $(self.el).dialog('close');
+    grow: function(seedModel) {
+      this.model.grow(seedModel);
+      $(this.el).dialog('close');
     },
     
-    remove: function(model) {
+    remove: function(seedModel) {
       var self = this;
       
-      $('<div><p>Are you sure you want to remove the preset "' + model.get('name') + '"?</p></div>').dialog({
+      $('<div><p>Are you sure you want to delete the preset "' + seedModel.get('name') + '"?</p></div>').dialog({
         title: 'Delete preset?',
         modal: true,
         buttons: {
@@ -107,8 +115,8 @@
             $(this).dialog('close');
           },
           'Delete': function() {
-            model.destroy();
-            self.collection.remove(model);
+            seedModel.destroy();
+            self.collection.remove(seedModel);
             $(this).dialog('close');
           }
         }
@@ -117,7 +125,7 @@
     
     update: function() {
       var self = this,
-          tags = self.collection.chain().map(function(model) { return model.get('tags'); }).flatten().uniq().value(),
+          tags = self.collection.chain().map(function(seedModel) { return seedModel.get('tags'); }).flatten().uniq().value(),
           presets = this.$('#seed-preset-list');
       
       presets.children().remove();
@@ -125,14 +133,14 @@
         var item = $('<li>').append($('<h3>').text(tag)).appendTo(presets),
             list = $('<ul></ul>').appendTo(item);
         
-        self.collection.each(function(model) {
-          if (model.get('tags').indexOf(tag) >= 0) {
+        self.collection.each(function(seedModel) {
+          if (seedModel.get('tags').indexOf(tag) >= 0) {
             $('<li>')
                 .append($('<button type="button"></button>')
-                    .text(model.get('name') || '(Unnamed)')
+                    .text(seedModel.get('name') || '(Unnamed)')
                     .button()
                     .click(function() {
-                      self.grow(model);
+                      self.grow(seedModel);
                       return false;
                     }))
                 .append($('<button type="button">&nbsp;</button>')
@@ -141,7 +149,7 @@
                       icons: { primary: 'ui-icon-close' }
                     })
                     .click(function() {
-                      self.remove(model);
+                      self.remove(seedModel);
                       return false;
                     }))
                 .buttonset()
@@ -177,10 +185,10 @@
   var SeedEditorView = Backbone.View.extend({
     initialize: function(options) {
       var self = this;
-      _.bindAll(this, 'render', 'edit', 'close', 'finish', 'error', 'seed');
+      _.bindAll(this, 'render', 'edit', 'close', 'finish', 'error', 'createSeed');
     },
     
-    seed: function() {
+    createSeed: function() {
       var self = this,
           form = $('#seed-editor-form'),
           seed;
@@ -229,12 +237,11 @@
     
     finish: function() {
       var self = this,
-          seed = self.seed(),
           model,
           error;
       
       try {
-        self.model.set(seed, { error: function(model, e) { error = e; } });
+        self.model.set(self.createSeed(), { error: function(model, e) { error = e; } });
       } catch(e) {
         error = e;
       }
@@ -253,6 +260,9 @@
           }
         });
       } else {
+        if (self.success) {
+          self.success(self.model);
+        }
         $(self.el).dialog('close');
       }
     },
@@ -372,26 +382,37 @@
     initialize: function(options) {
       var self = this;
       
-      _.bindAll(self, 'update', 'render');
+      _.bindAll(self, 'update');
       
+      self.seedCollection = options.seedCollection;
       self.seedPresetView = options.seedPresetView;
       self.seedEditorView = options.seedEditorView;
       
       self.model.bind('change:name', self.update);
+      self.model.bind('change:seed', self.update);
     },
     
     update: function() {
       var self = this,
-          model = self.model,
+          treeModel = self.model,
+          seedModel,
           buttons = $('<div>');
       
-      buttons.append($('<button>&nbsp;</button>')
-          .text(model.get('name') || '(Untitled)')
-          .attr('title', 'Edit tree options.')
-          .button()
-          .click(function() {
-            self.seedEditorView.edit(model);
-          }));
+      // current tree's seed button
+      seedModel = self.seedCollection.get(treeModel.get('seed')) || self.seedCollection.getByCid(treeModel.get('seed'));
+      if (seedModel) {
+        buttons.append($('<button>&nbsp;</button>')
+            .text(treeModel.get('name') || '(Untitled)')
+            .attr('title', 'Edit tree options.')
+            .button()
+            .click(function() {
+              self.seedEditorView.edit(seedModel, function() {
+                treeModel.grow(seedModel);
+              });
+            }));
+      }
+      
+      // browse button
       buttons.append($('<button>&nbsp;</button>')
           .attr('title', 'Load a tree.')
           .button({
@@ -408,11 +429,6 @@
       $(self.el).children().remove();
       $(self.el).append(buttons);
       
-      return self;
-    },
-    
-    render: function() {
-      var self = this;
       return self;
     }
   });
@@ -436,7 +452,7 @@
       self.seedPresetView = new SeedPresetView({
         el: document.getElementById('seed-preset-view'),
         collection: self.seedCollection,
-        treeModel: self.treeModel
+        model: self.treeModel
       }).render().update();
       self.seedEditorView = new SeedEditorView({
         el: document.getElementById('seed-editor-view')
@@ -446,6 +462,7 @@
       self.treeToolbarView = new TreeToolbarView({
         el: document.getElementById('tree-toolbar-view'),
         model: self.treeModel,
+        seedCollection: self.seedCollection,
         seedPresetView: self.seedPresetView,
         seedEditorView: self.seedEditorView
       }).render().update();

@@ -4,13 +4,15 @@
  * @author Dave Heaton <dave@bit155.com>
  */
 (function($) {
-  var parser = require('grow/parser'),
-      debug = false;
+  var parser = require('grow/parser');
 
   // ==========
   // = Turtle =
   // ==========
 
+  /**
+   * A turtle object can take a parsed l-system 
+   */
   var Turtle = function(opts) {
     var self = this;
     self.stack = [];
@@ -98,9 +100,8 @@
         i,
         module,
         command;
-    
-    program = toProgram(program);
-    
+
+    program = (typeof program === 'string') ? parseProgram(program) : program;
     from = Math.max(0, from || 0);
     to = Math.min(program.length, to || program.length);
     
@@ -213,30 +214,36 @@
     }
   };
   
-  // ============
-  // = Generate =
-  // ============
+  // ===========
+  // = Rewrite =
+  // ===========
   
   /**
-   * Generates the next iteration of a program by applying rewrite rules
-   * (productions) to a program.
+   * Rewrites a program using some production rules.
    *
-   * @param (String|Array) program a turtle program to evolve (eg. 'F' or the 
-   *        result of parseProgram)
-   * @param (String|Array) productions a set of production statements (eg. 
-   *        'F->FF' or the result of parseProductions)
+   * @param (String|Array) program a turtle program to evolve
+   * @param (String|Array) productions a set of production statements
    *
-   * @returns the new rewritten program
+   * @returns the (new) rewritten program
    */
-  var generate = function(options) {
-    var productions = toProductionIndex(options.productions), 
-        program = toProgram(options.program),
+  var rewrite = function(options) {
+    var productions, 
+        program,
         result = [],
         i,
         module,
         production,
         replacement;
 
+    // create productions index
+    productions = createProductionIndex(options.productions);
+
+    // compile program if necessary (shouldn't be but eh)
+    program = options.program;
+    if (typeof program === 'string') {
+      program = parseProgram(program);
+    }
+    
     for (i = 0; i < program.length; i++) {
       module = program[i];
       production = findProduction(productions, module);
@@ -281,17 +288,8 @@
     return tree.elements;
   };
   
-  // Returns the parsed version of a program. If the input is already parsed,
-  // just returns it verbatim.
-  var toProgram = function(program) {
-    if (typeof program === 'string') {
-      program = parseProgram(program);
-    }
-    return program;
-  };
-  
   // Returns an index of productions, keyed by command.
-  var toProductionIndex = function(productions) {
+  var createProductionIndex = function(productions) {
     var result = {}, i, prod, vars;
     
     // either parse or clone input productions since we'll be mutating
@@ -448,15 +446,5 @@
   
   exports.Turtle = Turtle;
   exports.MockContext = MockContext;
-  exports.parseProgram = parseProgram;
-  exports.parseProductions = parseProductions;
-  exports.generate = generate;
-  exports.debug = function(f) {
-    debug = true;
-    try {
-      f();
-    } finally {
-      debug = false;
-    }
-  };
+  exports.rewrite = rewrite;
 })(jQuery);

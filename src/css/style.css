@@ -376,14 +376,22 @@ a:hover {
   font-size: 10px;
   line-height: 2;
 }
-#container footer #status {
-  padding: 0 20px;
-  float: left;
-}
-#container footer #copyright {
-  opacity: 0.4;
+#container footer p {
+  color: rgba(85, 85, 85, 0.5);
   padding: 0 20px;
   float: right;
+  -moz-transition-duration: 0.2s;
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+}
+#container footer p:hover {
+  color: #555555;
+}
+#container footer p:hover a {
+  text-decoration: underline;
+}
+#container footer p a {
+  color: inherit;
 }
 #tree-toolbar-view {
   float: left;
