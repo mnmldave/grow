@@ -1,5 +1,6 @@
 /*!
  * Copyright (c) 2011 Dave Heaton
+ * Freely distributable under the MIT license.
  */
 (function($) {
   // via http://paulirish.com/2011/requestanimationframe-for-smart-animating/

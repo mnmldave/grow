@@ -1,5 +1,6 @@
 /*!
  * Copyright (c) 2011 Dave Heaton
+ * Freely distributable under the MIT license.
  */
 (function($) {
   var position = function(n, min, max) {
