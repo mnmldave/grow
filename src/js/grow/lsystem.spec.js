@@ -1,3 +1,6 @@
+/*!
+ * Copyright (c) 2011 Dave Heaton
+ */
 (function() {
   var lsystem = require('grow/lsystem'),
       parser = require('grow/parser');

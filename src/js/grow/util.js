@@ -1,3 +1,6 @@
+/*!
+ * Copyright (c) 2011 Dave Heaton
+ */
 (function($) {
   var position = function(n, min, max) {
     if (typeof n === 'string') {

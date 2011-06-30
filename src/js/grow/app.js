@@ -1,3 +1,6 @@
+/*!
+ * Copyright (c) 2011 Dave Heaton
+ */
 (function() {
   var Backbone = require('backbone'),
       BackboneLocalStorage = require('backbone/localStorage'),

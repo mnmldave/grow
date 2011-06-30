@@ -1,3 +1,6 @@
+/*!
+ * Copyright (c) 2011 Dave Heaton
+ */
 /*
  * PEG based on lsystem grammar outlined in "The Algorithmic Beauty of Plants"
  * by Przemyslaw Prusinkiewicz and Aristid Lindenmayer.

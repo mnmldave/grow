@@ -1,7 +1,5 @@
-/**
- * Pretty much just a Turtle class.
- *
- * @author Dave Heaton <dave@bit155.com>
+/*!
+ * Copyright (c) 2011 Dave Heaton
  */
 (function($) {
   var parser = require('grow/parser');

@@ -1,3 +1,6 @@
+/*!
+ * Copyright (c) 2011 Dave Heaton
+ */
 describe("parser", function() {
   var parser = require('grow/parser');
   
