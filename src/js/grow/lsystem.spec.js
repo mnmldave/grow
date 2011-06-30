@@ -60,6 +60,10 @@
           parser.parse('F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F').elements
         );
       });
+      
+      it('should generate simple doubling', function() {
+        
+      });
     });
     
     // ==========

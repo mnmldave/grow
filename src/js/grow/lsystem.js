@@ -270,7 +270,7 @@
     var tree = parser.parse(str);
     
     if (!(tree && tree.type === 'Program')) {
-      throw new Error("Not a program.");
+      throw new Error("Invalid program: " + str);
     }
     
     return tree.elements;
@@ -282,7 +282,7 @@
     var tree = parser.parse(str);
     
     if (!(tree && tree.type === 'ProductionList')) {
-      throw new Error("Not a production list.");
+      throw new Error("Invalid rules: " + str);
     }
     
     return tree.elements;

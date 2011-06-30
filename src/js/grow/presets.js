@@ -1,5 +1,5 @@
-(function() {
-  exports.presets = [
+(function($) {
+  var presets = [
     {
       name: '1.6 Koch Island',
       description: 'From page 8 of "Algorithmic Beauty of Plants".',
@@ -137,4 +137,14 @@
       productions: 'X -> F(7)-(22.5)[[X]+(22.5)X]+(22.5)F(7)[+(22.5)F(7)X]-(22.5)X\nF->F(n)F(n)'
     }
   ];
-})();
+  
+  // add preset name and versioning info so we can upgrade them later (maybe)
+  _.each(presets, function(preset) {
+    preset.preset = true;
+    preset.presetName = preset.name;
+    preset.presetVersion = '1';
+  });
+  
+  
+  exports.presets = $.extend(true, [], presets);
+})(jQuery);

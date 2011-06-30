@@ -208,16 +208,17 @@ a:hover { color: @color-link; }
     padding: 0;
     
     ul {
+      .clearfix();
       list-style: none;
       margin: 0;
-    }
-    
-    li {
-      float: left;
-      margin: 5px;
       
-      .ui-button-text {
-        font-size: 11px;
+      li {
+        float: left;
+        margin: 5px;
+
+        .ui-button-text {
+          font-size: 11px;
+        }
       }
     }
   }
