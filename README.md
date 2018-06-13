@@ -23,6 +23,6 @@ This project uses HTML5's `canvas` element to do the drawing, plus `localStorage
   * [jquery](http://jquery.com/)
   * [jquery-ui](http://jqueryui.com/)
   * [Aristo](https://github.com/taitems/Aristo-jQuery-UI-Theme) jquery ui theme
-  * [Jasmine](http://pivotal.github.com/jasmine/) for testing
+  * [Jasmine](https://jasmine.github.io/) for testing
   * [modernizr](http://www.modernizr.com/)
   * [HTML5 Boilerplate](http://html5boilerplate.com/)
